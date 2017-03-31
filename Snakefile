@@ -14,6 +14,12 @@ chromosomes = [1, 21]
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 
+# versions (commits) of hapcol
+hapcol_versions = {
+        'original' : '68a9f3fbce84020e2faef054fd07dfb1bd86052f',
+	'balanced_only' : '8651eb1782c32f77f638317dad7095d831b864af',
+	'increase_k_only' : '0a5415edc697304d0eb9a80b5832ad0a572c514b' }
+
 # master rule
 rule master :
 	input :
@@ -21,7 +27,9 @@ rule master :
 			dataset = datasets,
 			individual = individuals,
 			chromosome = chromosomes,
-			coverage = coverages)
+			coverage = coverages),
+		expand('hapcol_builds/{version}/hapcol',
+			version = hapcol_versions)
 
 #
 # link to files from phasing comparison experiments directory
@@ -106,3 +114,33 @@ rule get_var :
       tmp_{wildcards.dataset}_{wildcards.individual} {input} > {log.log} 2>&1
    mv tmp_{wildcards.dataset}_{wildcards.individual}_{wildcards.chromosome}.var \
       {output} '''
+
+#
+# build a version of hapcol
+#----------------------------------------------------------------------
+rule build_hapcol :
+        input : 'hapcol_builds/.hapcol_obtained'
+	output : 'hapcol_builds/{version}/hapcol'
+	params : version = lambda wildcards : hapcol_versions[wildcards.version]
+	message : 'building a version of hapcol called: {wildcards.version}'
+	shell : '''
+
+   mkdir -p hapcol_builds/{wildcards.version}
+   mkdir hapcol_builds/HapCol/build
+   cd hapcol_builds/HapCol/build
+   git checkout {params.version}
+   cmake ../src
+   make -j 16
+   mv hapcol ../../{wildcards.version}
+   rm -rf ../build '''
+
+# obtain hapcol (from its git repo)
+rule get_hapcol :
+        output : 'hapcol_builds/.hapcol_obtained'
+	message : 'cloning hapcol from its git repository'
+	shell : '''
+
+   mkdir -p hapcol_builds
+   cd hapcol_builds
+   touch .hapcol_obtained
+   git clone git@github.com:AlgoLab/HapCol.git '''
