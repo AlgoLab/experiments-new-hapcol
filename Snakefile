@@ -129,10 +129,12 @@ rule build_hapcol :
    mkdir -p hapcol_builds/{wildcards.version}
    mkdir hapcol_builds/HapCol/build
    cd hapcol_builds/HapCol/build
+   git pull
    git checkout {params.version}
    cmake ../src
    make -j 16
    mv hapcol ../../{wildcards.version}
+   git checkout master
    rm -rf ../build '''
 
 # obtain hapcol (from its git repo)
