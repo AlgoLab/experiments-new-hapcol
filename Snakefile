@@ -18,7 +18,8 @@ dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father
 hapcol_versions = {
         'original' : '68a9f3fbce84020e2faef054fd07dfb1bd86052f',
 	'balanced_only' : '8651eb1782c32f77f638317dad7095d831b864af',
-	'increase_k_only' : '0a5415edc697304d0eb9a80b5832ad0a572c514b' }
+	'increase_k_only' : '0a5415edc697304d0eb9a80b5832ad0a572c514b',
+        'increase_k_and_balancing' : '7a9cea5b63c5e0d48a16ad15a373aa294b73f119' }
 
 # master rule
 rule master :
