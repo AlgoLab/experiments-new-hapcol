@@ -21,6 +21,11 @@ hapcol_versions = {
 	'increase_k_only' : '0a5415edc697304d0eb9a80b5832ad0a572c514b',
         'increase_k_and_balancing' : '7a9cea5b63c5e0d48a16ad15a373aa294b73f119' }
 
+# test modes (parameter sets)
+test_modes = {
+        'none' : '',
+        'with_beta' : '-b 0' }
+
 # master rule
 rule master :
 	input :
@@ -30,7 +35,10 @@ rule master :
 			chromosome = chromosomes,
 			coverage = coverages),
 		expand('hapcol_builds/{version}/hapcol',
-			version = hapcol_versions)
+			version = hapcol_versions),
+		expand('test_output/hapcol-{version}.mode-none.hap',
+			version = ['increase_k_only', 'increase_k_and_balancing']),
+		'test_output/hapcol-increase_k_and_balancing.mode-with_beta.hap'
 
 #
 # link to files from phasing comparison experiments directory
@@ -147,3 +155,25 @@ rule get_hapcol :
    cd hapcol_builds
    touch .hapcol_obtained
    git clone git@github.com:AlgoLab/HapCol.git '''
+
+#
+# test a version of hapcol
+#----------------------------------------------------------------------
+rule test_hapcol_version :
+	input : 'wif/sim.pacbio.child.chr21.cov10.wif'
+	output : 'test_output/hapcol-{version}.mode-{mode}.hap'
+	params : lambda wildcards : test_modes[wildcards.mode]
+	log :
+		log = 'test_output/hapcol-{version}.mode-{mode}.log',
+		time = 'test_output/hapcol-{version}.mode-{mode}.time'
+
+	message : '''
+
+   testing hapcol version {wildcards.version} with parameters {params}
+   on {input} '''
+
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      ./hapcol_builds/{wildcards.version}/hapcol -i {input} -o {output} -A \
+         {params} > {log.log} 2>&1 '''
