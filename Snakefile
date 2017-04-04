@@ -1,14 +1,18 @@
 #
 # for testing and comparing the new hapcol
 #----------------------------------------------------------------------
-
-# settings
 data_dir = '/data/haplotyping_data/phasing-comparison-experiments'
+hap_dir = '/home/prj_rnabwt/haplotyping'
 
+# datasets
 datasets = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 coverages = [10, 20, 40, 'all']
 chromosomes = [1, 21]
+
+# scripts
+scripts = ['get.matrix.py', 'get.sfi.py', 'get.variants.py', 'wiftools.py']
+scregex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
@@ -34,6 +38,8 @@ rule master :
 			individual = individuals,
 			chromosome = chromosomes,
 			coverage = coverages),
+		expand('scripts/{script}', script = scripts),
+		'scripts/build-red-blue-graph.py',
 		expand('hapcol_builds/{version}/hapcol',
 			version = hapcol_versions)
 
@@ -50,6 +56,21 @@ rule link_bam_bai :
 	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
 	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
 	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+#
+# link to a script in the haplotyping/scripts directory, etc.
+#----------------------------------------------------------------------
+rule link_script :
+        input : hap_dir + '/scripts/{script}'
+	output : 'scripts/{script,'+scregex+'}'
+	message : 'linking script {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+rule link_red_blue :
+        input : hap_dir + '/red_blue/build-red-blue-graph.py'
+	output : 'scripts/build-red-blue-graph.py'
+	message : 'linking script {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
 #
