@@ -35,10 +35,7 @@ rule master :
 			chromosome = chromosomes,
 			coverage = coverages),
 		expand('hapcol_builds/{version}/hapcol',
-			version = hapcol_versions),
-		expand('test_output/hapcol-{version}.mode-none.hap',
-			version = ['increase_k_only', 'increase_k_and_balancing']),
-		'test_output/hapcol-increase_k_and_balancing.mode-with_beta.hap'
+			version = hapcol_versions)
 
 #
 # link to files from phasing comparison experiments directory
