@@ -38,8 +38,16 @@ rule master :
 			individual = individuals,
 			chromosome = chromosomes,
 			coverage = coverages),
+
 		expand('scripts/{script}', script = scripts),
 		'scripts/build-red-blue-graph.py',
+
+		expand('merged_wif/{dataset}.pacbio.{individual}.chr{chromosome}.cov{coverage}.merged.wif',
+			dataset = datasets,
+			individual = individuals,
+			chromosome = chromosomes,
+			coverage = coverages),
+
 		expand('hapcol_builds/{version}/hapcol',
 			version = hapcol_versions)
 
@@ -141,6 +149,70 @@ rule get_var :
       tmp_{wildcards.dataset}_{wildcards.individual} {input} > {log.log} 2>&1
    mv tmp_{wildcards.dataset}_{wildcards.individual}_{wildcards.chromosome}.var \
       {output} '''
+
+#
+# obtain a (red-blue-) merged wif from a wif
+#----------------------------------------------------------------------
+rule link_merged_wif :
+	input : 'wif/' + dataset_pattern + '.merged.wif'
+	output : 'merged_wif/' + dataset_pattern + '.merged.wif'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+# merge a wif according to connected components
+rule merge_wif :
+	input :
+		wif = 'wif/' + dataset_pattern + '.wif',
+		ccs = 'wif/' + dataset_pattern + '.ccs'
+
+	output : 'wif/' + dataset_pattern + '.merged.wif'
+	log :
+		log = 'wif/' + dataset_pattern + '.merged.wif.log',
+		time = 'wif/' + dataset_pattern + '.merged.wif.time'
+
+	message : '''
+
+   merge reads of {input.wif} according to {input.ccs}, producing {output} '''
+
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      python scripts/wiftools.py -c {input.ccs} {input.wif} \
+         > {output} 2> {log.log} '''
+
+# build red-blue graph, and obtain connected components (one per line)
+rule get_redblue_ccs :
+	input : 'wif/' + dataset_pattern + '.mat'
+	output : 'wif/' + dataset_pattern + '.ccs'
+	log :
+		log = 'wif/' + dataset_pattern + '.css.log',
+		time = 'wif/' + dataset_pattern + '.css.time'
+
+	message : '''
+
+   obtain connected components {output} from {input} using red-blue graph '''
+
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      python scripts/build-red-blue-graph.py {input} > {output} 2> {log.log} '''
+
+# convert wif file to a (zygosity) matrix
+rule get_zygosity_matrix :
+	input : 'wif/' + dataset_pattern + '.wif'
+	output : 'wif/' + dataset_pattern + '.mat'
+	log :
+		log = 'wif/' + dataset_pattern + '.mat.log',
+		time = 'wif/' + dataset_pattern + '.mat.time'
+
+	message : 'converting {input} to (zygosity) matrix: {output}'
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      python scripts/wiftools.py -z {input} | awk '{{ \
+         for(i=3; i<= NF; ++i) {{ \
+            if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \
+         print }}' > {output} 2> {log.log} '''
 
 #
 # build a version of hapcol
