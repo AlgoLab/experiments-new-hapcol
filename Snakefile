@@ -41,6 +41,10 @@ rule master :
 	input :
 		expand('input_wif/{paths}.wif', paths = datasets_exp),
 		expand('merged_wif/{paths}.merged.wif', paths = datasets_exp),
+		expand('wif/{paths}{merge}.wif.info_/blocks_',
+			paths = datasets_exp,
+			merge = ['', '.merged']),
+
 		expand('hapcol_builds/{version}/hapcol',
 			version = hapcol_versions)
 
@@ -273,3 +277,14 @@ rule test_hapcol_version :
    /usr/bin/time -v -o {log.time} \
       ./hapcol_builds/{wildcards.version}/hapcol -i {input} -o {output} -A \
          {params} > {log.log} 2>&1 '''
+
+#
+# obtain properties of a wif file
+#----------------------------------------------------------------------
+rule wif_info :
+	input :
+		scr = 'scripts/wiftools.py',
+		wif = '{path}.wif'
+	output : '{path}.wif.info_/blocks_'
+	message : 'obtaining info for {input.wif}'
+	shell : 'python {input.scr} -i {input.wif}'
