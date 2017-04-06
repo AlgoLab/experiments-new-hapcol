@@ -39,9 +39,6 @@ rule master :
 			chromosome = chromosomes,
 			coverage = coverages),
 
-		expand('scripts/{script}', script = scripts),
-		'scripts/build-red-blue-graph.py',
-
 		expand('merged_wif/{dataset}.pacbio.{individual}.chr{chromosome}.cov{coverage}.merged.wif',
 			dataset = datasets,
 			individual = individuals,
@@ -94,6 +91,7 @@ rule link_wif :
 # the lines and convert this to wif, using the var file
 rule get_wif :
 	input :
+		scr = 'scripts/get.matrix.py',
 		sfi = 'wif/' + dataset_pattern + '.sfi',
 		var = 'vcf/' + vcf_pattern + '.var'
 
@@ -110,12 +108,13 @@ rule get_wif :
 
    /usr/bin/time -v -o {log.time} \
       awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' \
-         {input.sfi} | python scripts/get.matrix.py -s -w {input.var} | \
+         {input.sfi} | python {input.scr} -s -w {input.var} | \
             sort -nk1,1 > {output} 2> {log.log} '''
 
 # get a snv/fragment info (snv) file from a bam / var pair
 rule get_sfi :
 	input :
+		scr = 'scripts/get.sfi.py',
 		bam = 'bam/' + dataset_pattern + '.bam',
 		var = 'vcf/' + vcf_pattern + '.var'
 
@@ -131,22 +130,26 @@ rule get_sfi :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      samtools view {input.bam} | python scripts/get.sfi.py {input.var} \
+      samtools view {input.bam} | python {input.scr} {input.var} \
          > {output} 2> {log.log} '''
 
 # get a variants (SNVs) file from a vcf file
 rule get_var :
-	input : 'vcf/' + vcf_pattern + '.unphased.vcf'
+	input :
+		scr = 'scripts/get.variants.py',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
+
 	output : 'vcf/' + vcf_pattern + '.var'
 	log :
 		log = 'vcf/' + vcf_pattern + '.var.log',
 		time = 'vcf/' + vcf_pattern + '.var.time'
 
-	message : 'obtaining SNVs file {output} from {input}'
+	message : 'obtaining SNVs file {output} from {input.vcf}'
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} python scripts/get.variants.py \
-      tmp_{wildcards.dataset}_{wildcards.individual} {input} > {log.log} 2>&1
+   /usr/bin/time -v -o {log.time} python {input.scr} \
+      tmp_{wildcards.dataset}_{wildcards.individual} {input.vcf} \
+         > {log.log} 2>&1
    mv tmp_{wildcards.dataset}_{wildcards.individual}_{wildcards.chromosome}.var \
       {output} '''
 
@@ -162,6 +165,7 @@ rule link_merged_wif :
 # merge a wif according to connected components
 rule merge_wif :
 	input :
+		scr = 'scripts/wiftools.py',
 		wif = 'wif/' + dataset_pattern + '.wif',
 		ccs = 'wif/' + dataset_pattern + '.ccs'
 
@@ -177,39 +181,45 @@ rule merge_wif :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python scripts/wiftools.py -c {input.ccs} {input.wif} \
+      python {input.scr} -c {input.ccs} {input.wif} \
          > {output} 2> {log.log} '''
 
 # build red-blue graph, and obtain connected components (one per line)
 rule get_redblue_ccs :
-	input : 'wif/' + dataset_pattern + '.mat'
+	input :
+		scr = 'scripts/build-red-blue-graph.py',
+		mat = 'wif/' + dataset_pattern + '.mat'
+
 	output : 'wif/' + dataset_pattern + '.ccs'
 	log :
-		log = 'wif/' + dataset_pattern + '.css.log',
-		time = 'wif/' + dataset_pattern + '.css.time'
+		log = 'wif/' + dataset_pattern + '.ccs.log',
+		time = 'wif/' + dataset_pattern + '.ccs.time'
 
 	message : '''
 
-   obtain connected components {output} from {input} using red-blue graph '''
+   obtain connected components {output} from {input.mat} using red-blue graph '''
 
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python scripts/build-red-blue-graph.py {input} > {output} 2> {log.log} '''
+      python {input.scr} {input.mat} > {output} 2> {log.log} '''
 
 # convert wif file to a (zygosity) matrix
 rule get_zygosity_matrix :
-	input : 'wif/' + dataset_pattern + '.wif'
+	input :
+		scr = 'scripts/wiftools.py',
+		wif = 'wif/' + dataset_pattern + '.wif'
+
 	output : 'wif/' + dataset_pattern + '.mat'
 	log :
 		log = 'wif/' + dataset_pattern + '.mat.log',
 		time = 'wif/' + dataset_pattern + '.mat.time'
 
-	message : 'converting {input} to (zygosity) matrix: {output}'
+	message : 'converting {input.wif} to (zygosity) matrix: {output}'
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python scripts/wiftools.py -z {input} | awk '{{ \
+      python {input.scr} -z {input.wif} | awk '{{ \
          for(i=3; i<= NF; ++i) {{ \
             if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \
          print }}' > {output} 2> {log.log} '''
