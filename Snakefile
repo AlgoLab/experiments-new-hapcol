@@ -18,6 +18,12 @@ scregex = '('+'|'.join([s for s in scripts])+')'
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 
+datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosome, coverage)
+	for dataset in datasets
+	for individual in individuals
+	for chromosome in chromosomes
+	for coverage in coverages]
+
 # versions (commits) of hapcol
 hapcol_versions = {
         'original' : '68a9f3fbce84020e2faef054fd07dfb1bd86052f',
@@ -33,18 +39,8 @@ test_modes = {
 # master rule
 rule master :
 	input :
-		expand('input_wif/{dataset}.pacbio.{individual}.chr{chromosome}.cov{coverage}.wif',
-			dataset = datasets,
-			individual = individuals,
-			chromosome = chromosomes,
-			coverage = coverages),
-
-		expand('merged_wif/{dataset}.pacbio.{individual}.chr{chromosome}.cov{coverage}.merged.wif',
-			dataset = datasets,
-			individual = individuals,
-			chromosome = chromosomes,
-			coverage = coverages),
-
+		expand('input_wif/{paths}.wif', paths = datasets_exp),
+		expand('merged_wif/{paths}.merged.wif', paths = datasets_exp),
 		expand('hapcol_builds/{version}/hapcol',
 			version = hapcol_versions)
 
