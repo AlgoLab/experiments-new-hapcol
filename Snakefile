@@ -1,13 +1,13 @@
 #
 # for testing and comparing the new hapcol
 #----------------------------------------------------------------------
-data_dir = '/data/haplotyping_data/phasing-comparison-experiments'
+data_dir = '/data/phasing-comparison-experiments'
 hap_dir = '/home/prj_rnabwt/haplotyping'
 
 # datasets
 datasets = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
-coverages = [10, 20, 40, 'all']
+coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
 
 # scripts
