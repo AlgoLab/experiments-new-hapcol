@@ -154,6 +154,74 @@ rule get_var :
       {output} '''
 
 #
+# downsample a wif file to a specified max coverage
+#----------------------------------------------------------------------
+rule link_downsampled_wif :
+	input : 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif'
+	output : 'input_wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.wif'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+rule link_downsampled_merged_wif :
+	input : 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.merged.wif'
+	output : 'merged_wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.merged.wif'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+# extract from wif file (the lines of) the sample
+rule extract_sample :
+	input :
+		wif = 'wif/' + dataset_pattern + '.{ext}',
+		spl = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample'
+
+	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|merged.wif)}'
+	message : 'extract lines {input.spl} from {input.wif}'
+	shell : '''
+
+   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.wif} | join - \
+      <(awk '{{printf "%.20d\\n", $1}}' {input.spl} | sort) | \
+         sed 's/^[0-9]* //' > {output} '''
+
+# greedily downsample wif to a coverage according to a shuffle
+rule downsample :
+	input :
+		scr = 'scripts/wiftools.py',
+		wif = 'wif/' + dataset_pattern + '.{ext}',
+		shf = 'wif/' + dataset_pattern + '.{ext}.lines.shuf{seed}'
+
+	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|merged.wif)}.sample'
+	log :
+		log = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample.log',
+		time = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample.time'
+
+	message : '''
+
+   downsampling {input.wif} to coverage {wildcards.cov}
+   according to {input.shf} '''
+
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      python {input.scr} -s {wildcards.cov} {input.shf} {input.wif} > {output} '''
+
+# seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
+rule permute_lines :
+	input : '{path}.lines'
+	output : '{path}.lines.shuf{seed,[0-9]+}'
+	message : 'pseudorandom shuffle of {input} with seed {wildcards.seed}'
+	shell : '''
+
+   shuf {input} --random-source=<(openssl enc -aes-256-ctr \
+      -pass pass:"{wildcards.seed}" -nosalt </dev/zero 2>/dev/null) > {output} '''
+
+# get lines (numbers) from a file
+rule get_lines :
+	input : '{path}'
+	output : '{path}.lines'
+	message : 'obtain lines (numbers) from {input}'
+	shell : ''' awk '{{print NR}}' {input} > {output} '''
+
+#
 # obtain a (red-blue-) merged wif from a wif
 #----------------------------------------------------------------------
 rule link_merged_wif :
