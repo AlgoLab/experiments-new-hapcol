@@ -95,21 +95,24 @@ rule get_wif :
 		sfi = 'wif/' + dataset_pattern + '.sfi',
 		var = 'vcf/' + vcf_pattern + '.var'
 
-	output : 'wif/' + dataset_pattern + '.wif'
+	output :
+		wif = 'wif/' + dataset_pattern + '.wif',
+		tra = 'wif/' + dataset_pattern + '.transcript'
+
 	log :
 		log = 'wif/' + dataset_pattern + '.wif.log',
 		time = 'wif/' + dataset_pattern + '.wif.time'
 
 	message : '''
 
-   obtaining wif file {output} from {input.sfi} / {input.var} pair '''
+   obtaining wif file {output.wif} from {input.sfi} / {input.var} pair '''
 
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' \
-         {input.sfi} | python {input.scr} -s -w {input.var} | \
-            sort -nk1,1 > {output} 2> {log.log} '''
+      awk '(($2==0 || $2==16) && ($9 != "#insertions"))' {input.sfi} | \
+         python {input.scr} -s -w -t {output.tra} {input.var} | \
+            sort -nk1,1 > {output.wif} 2> {log.log} '''
 
 # get a snv/fragment info (snv) file from a bam / var pair
 rule get_sfi :
