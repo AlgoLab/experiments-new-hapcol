@@ -220,6 +220,27 @@ rule get_lines :
 	shell : ''' awk '{{print NR}}' {input} > {output} '''
 
 #
+# select reads from bam file (1:1) corresponding to downsampled wif
+#----------------------------------------------------------------------
+rule select_reads :
+	input :
+		scr = 'scripts/subsam.py',
+		bam = 'bam/' + dataset_pattern + '.bam',
+		sub = 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.subset'
+
+	output : 'bam/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.bam'
+	log :
+		log = 'bam/' + dataset_pattern + '.shuf{seed}.max{cov}.bam.log',
+		time = 'bam/' + dataset_pattern + '.shuf{seed}.max{cov}.bam.time'
+
+	message : 'selecting reads from {input.bam} according to {input.sub}'
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      samtools view -h {input.bam} | python {input.scr} -s {input.sub} | \
+         samtools view -hb - > {output} 2> {log.log} '''
+
+#
 # obtain a (red-blue-) merged wif from a wif
 #----------------------------------------------------------------------
 rule link_merged_wif :
