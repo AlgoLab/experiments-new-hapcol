@@ -1,0 +1,55 @@
+#
+# for running whatshap
+#----------------------------------------------------------------------
+out_dir = 'output/whatshap'
+
+# datasets
+datasets = ['ashk', 'sim']
+individuals = ['child'] # mother, father, ..
+coverages = [5, 10, 15, 20, 25, 30, 'all']
+chromosomes = [1, 21]
+max_covs = [20, 30]
+seeds = [1, 2, 3]
+Hs = [15, 20, 25]
+
+# common patterns
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
+dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
+pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
+
+#
+# master rule
+#----------------------------------------------------------------------
+rule master :
+	input :
+		expand('{out_dir}/{data}.pacbio.child.chr{chr}.cov{cov}.shuf1.max{max}.H{H}.phased.vcf',
+			out_dir = out_dir.split(),
+			data = datasets,
+			chr = chromosomes,
+			cov = coverages,
+			max = max_covs,
+			H = Hs)
+
+#
+# run whatshap on an instance
+#----------------------------------------------------------------------
+rule run_whatshap :
+	input :
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		bam = 'bam/' + pattern_ext + '.bam'
+
+	output : '{out_dir}/' + pattern_ext + '.H{H,[0-9]+}.phased.vcf'
+	log :
+		log = '{out_dir}/' + pattern_ext + '.H{H}.log',
+		time = '{out_dir}/' + pattern_ext + '.H{H}.time'
+
+	message : '''
+
+   running whatshap on {input.vcf} / {input.bam} pair,
+   cutting coverage down to {wildcards.H} '''
+
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      whatshap phase -o {output} -H {wildcards.H} \
+         {input.vcf} {input.bam} > {log.log} 2>&1 '''
