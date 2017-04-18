@@ -87,7 +87,7 @@ rule link_wif :
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
-# take only reads with flag 0 or 16 and non-empyt set of SNVs, number
+# take only reads with flag 0 or 16 and non-empty set of SNVs, number
 # the lines and convert this to wif, using the var file
 rule get_wif :
 	input :
@@ -205,7 +205,8 @@ rule downsample :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.scr} -s {wildcards.cov} {input.shf} {input.wif} > {output} '''
+      python {input.scr} -s {wildcards.cov} {input.shf} {input.wif} \
+         > {output} 2> {log.log} '''
 
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
 rule permute_lines :
