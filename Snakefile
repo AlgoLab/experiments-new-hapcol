@@ -1,42 +1,50 @@
 #
-# for testing and comparing the new hapcol
+# for generating all of the data needed for the new hapcol
 #----------------------------------------------------------------------
+#
 data_dir = '/data/phasing-comparison-experiments'
 hap_dir = '/home/prj_rnabwt/haplotyping'
 
 # datasets
-datasets = ['ashk', 'sim']
+data = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
+seeds = [1] # 2, 3, .. for downsampling
+max_covs = [20, 30]
 
 # scripts
 scripts = ['get.matrix.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
-scregex = '('+'|'.join([s for s in scripts])+')'
+scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
-datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosome, coverage)
-	for dataset in datasets
+# lists (the datasets in the form of a list)
+datasets = ['{}.pacbio.{}.chr{}.cov{}'.format(data, individual, chromosome, coverage)
+	for data in data
 	for individual in individuals
 	for chromosome in chromosomes
 	for coverage in coverages]
 
+datasets_ext = ['{}.shuf{}.max{}'.format(dataset, seed, max)
+	for dataset in datasets
+	for seed in seeds
+	for max in max_covs]
 
+#
 # master rule
+#----------------------------------------------------------------------
 rule master :
 	input :
-		expand('input_wif/{paths}.wif', paths = datasets_exp),
-		expand('merged_wif/{paths}.merged.wif', paths = datasets_exp),
-		expand('wif/{paths}{merge}.wif.info_/blocks_',
-			paths = datasets_exp,
-			merge = ['', '.merged']),
-
-		expand('hapcol_builds/{version}/hapcol',
-			version = hapcol_versions)
+		expand('input_wif/{pattern}.wif',
+			pattern = datasets + datasets_ext),
+		expand('merged_wif/{pattern}.merged.wif',
+			pattern = datasets + datasets_ext),
+		expand('bam/{pattern}.bam',
+			pattern = datasets + datasets_ext)
 
 #
 # link to files from phasing comparison experiments directory
@@ -58,7 +66,7 @@ rule link_bam_bai :
 #----------------------------------------------------------------------
 rule link_script :
         input : hap_dir + '/scripts/{script}'
-	output : 'scripts/{script,'+scregex+'}'
+	output : 'scripts/{script,' + scripts_regex + '}'
 	message : 'linking script {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
