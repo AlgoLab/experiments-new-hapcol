@@ -244,8 +244,8 @@ rule select_reads :
 # obtain a (red-blue-) merged wif from a wif
 #----------------------------------------------------------------------
 rule link_merged_wif :
-	input : 'wif/' + dataset_pattern + '.merged.wif'
-	output : 'merged_wif/' + dataset_pattern + '.merged.wif'
+	input : 'wif/{pattern}.merged.wif'
+	output : 'merged_wif/{pattern}.merged.wif'
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
@@ -253,13 +253,13 @@ rule link_merged_wif :
 rule merge_wif :
 	input :
 		scr = 'scripts/wiftools.py',
-		wif = 'wif/' + dataset_pattern + '.wif',
-		ccs = 'wif/' + dataset_pattern + '.ccs'
+		wif = 'wif/{pattern}.wif',
+		ccs = 'wif/{pattern}.ccs'
 
-	output : 'wif/' + dataset_pattern + '.merged.wif'
+	output : 'wif/{pattern}.merged.wif'
 	log :
-		log = 'wif/' + dataset_pattern + '.merged.wif.log',
-		time = 'wif/' + dataset_pattern + '.merged.wif.time'
+		log = 'wif/{pattern}.merged.wif.log',
+		time = 'wif/{pattern}.merged.wif.time'
 
 	message : '''
 
@@ -275,12 +275,12 @@ rule merge_wif :
 rule get_redblue_ccs :
 	input :
 		scr = 'scripts/build-red-blue-graph.py',
-		mat = 'wif/' + dataset_pattern + '.mat'
+		mat = 'wif/{pattern}.mat'
 
-	output : 'wif/' + dataset_pattern + '.ccs'
+	output : 'wif/{pattern}.ccs'
 	log :
-		log = 'wif/' + dataset_pattern + '.ccs.log',
-		time = 'wif/' + dataset_pattern + '.ccs.time'
+		log = 'wif/{pattern}.ccs.log',
+		time = 'wif/{pattern}.ccs.time'
 
 	message : '''
 
@@ -295,12 +295,12 @@ rule get_redblue_ccs :
 rule get_zygosity_matrix :
 	input :
 		scr = 'scripts/wiftools.py',
-		wif = 'wif/' + dataset_pattern + '.wif'
+		wif = 'wif/{pattern}.wif'
 
-	output : 'wif/' + dataset_pattern + '.mat'
+	output : 'wif/{pattern}.mat'
 	log :
-		log = 'wif/' + dataset_pattern + '.mat.log',
-		time = 'wif/' + dataset_pattern + '.mat.time'
+		log = 'wif/{pattern}.mat.log',
+		time = 'wif/{pattern}.mat.time'
 
 	message : 'converting {input.wif} to (zygosity) matrix: {output}'
 	shell : '''
