@@ -25,17 +25,6 @@ datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosom
 	for chromosome in chromosomes
 	for coverage in coverages]
 
-# versions (commits) of hapcol
-hapcol_versions = {
-        'original' : '68a9f3fbce84020e2faef054fd07dfb1bd86052f',
-	'balanced_only' : '8651eb1782c32f77f638317dad7095d831b864af',
-	'increase_k_only' : '0a5415edc697304d0eb9a80b5832ad0a572c514b',
-        'increase_k_and_balancing' : '7a9cea5b63c5e0d48a16ad15a373aa294b73f119' }
-
-# test modes (parameter sets)
-test_modes = {
-        'none' : '',
-        'with_beta' : '-b 0' }
 
 # master rule
 rule master :
@@ -311,60 +300,6 @@ rule get_zygosity_matrix :
          for(i=3; i<= NF; ++i) {{ \
             if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \
          print }}' > {output} 2> {log.log} '''
-
-#
-# build a version of hapcol
-#----------------------------------------------------------------------
-rule build_hapcol :
-        input : 'hapcol_builds/.hapcol_obtained'
-	output : 'hapcol_builds/{version}/hapcol'
-	params : version = lambda wildcards : hapcol_versions[wildcards.version]
-	message : 'building a version of hapcol called: {wildcards.version}'
-	shell : '''
-
-   mkdir -p hapcol_builds/{wildcards.version}
-   mkdir hapcol_builds/HapCol/build
-   cd hapcol_builds/HapCol/build
-   git pull
-   git checkout {params.version}
-   cmake ../src
-   make -j 16
-   mv hapcol ../../{wildcards.version}
-   git checkout master
-   rm -rf ../build '''
-
-# obtain hapcol (from its git repo)
-rule get_hapcol :
-        output : 'hapcol_builds/.hapcol_obtained'
-	message : 'cloning hapcol from its git repository'
-	shell : '''
-
-   mkdir -p hapcol_builds
-   cd hapcol_builds
-   touch .hapcol_obtained
-   git clone git@github.com:AlgoLab/HapCol.git '''
-
-#
-# test a version of hapcol
-#----------------------------------------------------------------------
-rule test_hapcol_version :
-	input : 'wif/sim.pacbio.child.chr21.cov10.wif'
-	output : 'test_output/hapcol-{version}.mode-{mode}.hap'
-	params : lambda wildcards : test_modes[wildcards.mode]
-	log :
-		log = 'test_output/hapcol-{version}.mode-{mode}.log',
-		time = 'test_output/hapcol-{version}.mode-{mode}.time'
-
-	message : '''
-
-   testing hapcol version {wildcards.version} with parameters {params}
-   on {input} '''
-
-	shell : '''
-
-   /usr/bin/time -v -o {log.time} \
-      ./hapcol_builds/{wildcards.version}/hapcol -i {input} -o {output} -A \
-         {params} > {log.log} 2>&1 '''
 
 #
 # obtain properties of a wif file
