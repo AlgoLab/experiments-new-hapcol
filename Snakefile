@@ -97,7 +97,7 @@ rule get_wif :
 
 	output :
 		wif = 'wif/' + dataset_pattern + '.wif',
-		tra = 'wif/' + dataset_pattern + '.transcript'
+		sub = 'wif/' + dataset_pattern + '.subset'
 
 	log :
 		log = 'wif/' + dataset_pattern + '.wif.log',
@@ -110,8 +110,8 @@ rule get_wif :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      awk '(($2==0 || $2==16) && ($9 != "#insertions"))' {input.sfi} | \
-         python {input.scr} -s -w -t {output.tra} {input.var} | \
+      awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' \
+         {input.sfi} | python {input.scr} -s -w -t {output.sub} {input.var} | \
             sort -nk1,1 > {output.wif} 2> {log.log} '''
 
 # get a snv/fragment info (snv) file from a bam / var pair
@@ -165,23 +165,17 @@ rule link_downsampled_wif :
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
-rule link_downsampled_merged_wif :
-	input : 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.merged.wif'
-	output : 'merged_wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.merged.wif'
-	message : 'linking {input} to {output}'
-	shell : 'ln -fsrv {input} {output}'
-
-# extract from wif file (the lines of) the sample
+# extract from wif (or a set of reads) file (the lines of) the sample
 rule extract_sample :
 	input :
-		wif = 'wif/' + dataset_pattern + '.{ext}',
-		spl = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample'
+		src = 'wif/' + dataset_pattern + '.{ext}',
+		spl = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample'
 
-	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|merged.wif)}'
-	message : 'extract lines {input.spl} from {input.wif}'
+	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|subset)}'
+	message : 'extract lines {input.spl} from {input.src}'
 	shell : '''
 
-   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.wif} | join - \
+   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.src} | join - \
       <(awk '{{printf "%.20d\\n", $1}}' {input.spl} | sort) | \
          sed 's/^[0-9]* //' > {output} '''
 
@@ -189,13 +183,13 @@ rule extract_sample :
 rule downsample :
 	input :
 		scr = 'scripts/wiftools.py',
-		wif = 'wif/' + dataset_pattern + '.{ext}',
-		shf = 'wif/' + dataset_pattern + '.{ext}.lines.shuf{seed}'
+		wif = 'wif/' + dataset_pattern + '.wif',
+		shf = 'wif/' + dataset_pattern + '.wif.lines.shuf{seed}'
 
-	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|merged.wif)}.sample'
+	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.wif.sample'
 	log :
-		log = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample.log',
-		time = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.{ext}.sample.time'
+		log = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample.log',
+		time = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample.time'
 
 	message : '''
 
