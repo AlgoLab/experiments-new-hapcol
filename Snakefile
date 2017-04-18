@@ -92,7 +92,7 @@ rule link_wif :
 # the lines and convert this to wif, using the var file
 rule get_wif :
 	input :
-		scr = 'scripts/get.matrix.py',
+		script = 'scripts/get.matrix.py',
 		sfi = 'wif/' + dataset_pattern + '.sfi',
 		var = 'vcf/' + vcf_pattern + '.var'
 
@@ -112,13 +112,13 @@ rule get_wif :
 
    /usr/bin/time -v -o {log.time} \
       awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' \
-         {input.sfi} | python {input.scr} -s -w -t {output.sub} {input.var} | \
+         {input.sfi} | python {input.script} -s -w -t {output.sub} {input.var} | \
             sort -nk1,1 > {output.wif} 2> {log.log} '''
 
 # get a snv/fragment info (snv) file from a bam / var pair
 rule get_sfi :
 	input :
-		scr = 'scripts/subsam.py',
+		script = 'scripts/subsam.py',
 		bam = 'bam/' + dataset_pattern + '.bam',
 		var = 'vcf/' + vcf_pattern + '.var'
 
@@ -134,13 +134,13 @@ rule get_sfi :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      samtools view {input.bam} | python {input.scr} -v {input.var} \
+      samtools view {input.bam} | python {input.script} -v {input.var} \
          > {output} 2> {log.log} '''
 
 # get a variants (SNVs) file from a vcf file
 rule get_var :
 	input :
-		scr = 'scripts/get.variants.py',
+		script = 'scripts/get.variants.py',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
 	output : 'vcf/' + vcf_pattern + '.var'
@@ -151,7 +151,7 @@ rule get_var :
 	message : 'obtaining SNVs file {output} from {input.vcf}'
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} python {input.scr} \
+   /usr/bin/time -v -o {log.time} python {input.script} \
       tmp_{wildcards.dataset}_{wildcards.individual} {input.vcf} \
          > {log.log} 2>&1
    mv tmp_{wildcards.dataset}_{wildcards.individual}_{wildcards.chromosome}.var \
@@ -169,23 +169,23 @@ rule link_downsampled_wif :
 # extract from wif (or a set of reads) file (the lines of) the sample
 rule extract_sample :
 	input :
-		src = 'wif/' + pattern_ext + '.{ext}',
-		spl = 'wif/' + pattern_ext + '.wif.sample'
+		source = 'wif/' + pattern_ext + '.{ext}',
+		sample = 'wif/' + pattern_ext + '.wif.sample'
 
 	output : 'wif/' + pattern_ext + '.{ext,(wif|subset)}'
-	message : 'extract lines {input.spl} from {input.src}'
+	message : 'extract lines {input.sample} from {input.source}'
 	shell : '''
 
-   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.src} | join - \
-      <(awk '{{printf "%.20d\\n", $1}}' {input.spl} | sort) | \
+   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.source} | join - \
+      <(awk '{{printf "%.20d\\n", $1}}' {input.sample} | sort) | \
          sed 's/^[0-9]* //' > {output} '''
 
 # greedily downsample wif to a coverage according to a shuffle
 rule downsample :
 	input :
-		scr = 'scripts/wiftools.py',
+		script = 'scripts/wiftools.py',
 		wif = 'wif/' + dataset_pattern + '.wif',
-		shf = 'wif/' + dataset_pattern + '.wif.lines.shuf{seed}'
+		shuf = 'wif/' + dataset_pattern + '.wif.lines.shuf{seed}'
 
 	output : 'wif/' + pattern_ext + '.wif.sample'
 	log :
@@ -195,12 +195,12 @@ rule downsample :
 	message : '''
 
    downsampling {input.wif} to coverage {wildcards.cov}
-   according to {input.shf} '''
+   according to {input.shuf} '''
 
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.scr} -s {wildcards.cov} {input.shf} {input.wif} \
+      python {input.script} -s {wildcards.cov} {input.shuf} {input.wif} \
          > {output} 2> {log.log} '''
 
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
@@ -225,7 +225,7 @@ rule get_lines :
 #----------------------------------------------------------------------
 rule select_reads :
 	input :
-		scr = 'scripts/subsam.py',
+		script = 'scripts/subsam.py',
 		bam = 'bam/' + dataset_pattern + '.bam',
 		sub = 'wif/' + pattern_ext + '.subset'
 
@@ -238,7 +238,7 @@ rule select_reads :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      samtools view -h {input.bam} | python {input.scr} -s {input.sub} | \
+      samtools view -h {input.bam} | python {input.script} -s {input.sub} | \
          samtools view -hb - > {output} 2> {log.log} '''
 
 #
@@ -253,7 +253,7 @@ rule link_merged_wif :
 # merge a wif according to connected components
 rule merge_wif :
 	input :
-		scr = 'scripts/wiftools.py',
+		script = 'scripts/wiftools.py',
 		wif = 'wif/{pattern}.wif',
 		ccs = 'wif/{pattern}.ccs'
 
@@ -269,13 +269,13 @@ rule merge_wif :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.scr} -c {input.ccs} {input.wif} \
+      python {input.script} -c {input.ccs} {input.wif} \
          > {output} 2> {log.log} '''
 
 # build red-blue graph, and obtain connected components (one per line)
 rule get_redblue_ccs :
 	input :
-		scr = 'scripts/build-red-blue-graph.py',
+		script = 'scripts/build-red-blue-graph.py',
 		mat = 'wif/{pattern}.mat'
 
 	output : 'wif/{pattern}.ccs'
@@ -290,12 +290,12 @@ rule get_redblue_ccs :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.scr} {input.mat} > {output} 2> {log.log} '''
+      python {input.script} {input.mat} > {output} 2> {log.log} '''
 
 # convert wif file to a (zygosity) matrix
 rule get_zygosity_matrix :
 	input :
-		scr = 'scripts/wiftools.py',
+		script = 'scripts/wiftools.py',
 		wif = 'wif/{pattern}.wif'
 
 	output : 'wif/{pattern}.mat'
@@ -307,7 +307,7 @@ rule get_zygosity_matrix :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.scr} -z {input.wif} | awk '{{ \
+      python {input.script} -z {input.wif} | awk '{{ \
          for(i=3; i<= NF; ++i) {{ \
             if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \
          print }}' > {output} 2> {log.log} '''
@@ -371,8 +371,8 @@ rule test_hapcol_version :
 #----------------------------------------------------------------------
 rule wif_info :
 	input :
-		scr = 'scripts/wiftools.py',
+		script = 'scripts/wiftools.py',
 		wif = '{path}.wif'
 	output : '{path}.wif.info_/blocks_'
 	message : 'obtaining info for {input.wif}'
-	shell : 'python {input.scr} -i {input.wif}'
+	shell : 'python {input.script} -i {input.wif}'
