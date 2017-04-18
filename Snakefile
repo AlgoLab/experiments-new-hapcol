@@ -17,6 +17,7 @@ scregex = '('+'|'.join([s for s in scripts])+')'
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
+pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
 datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosome, coverage)
 	for dataset in datasets
@@ -160,18 +161,18 @@ rule get_var :
 # downsample a wif file to a specified max coverage
 #----------------------------------------------------------------------
 rule link_downsampled_wif :
-	input : 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif'
-	output : 'input_wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.wif'
+	input : 'wif/' + pattern_ext + '.wif'
+	output : 'input_wif/' + pattern_ext + '.wif'
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
 # extract from wif (or a set of reads) file (the lines of) the sample
 rule extract_sample :
 	input :
-		src = 'wif/' + dataset_pattern + '.{ext}',
-		spl = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample'
+		src = 'wif/' + pattern_ext + '.{ext}',
+		spl = 'wif/' + pattern_ext + '.wif.sample'
 
-	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.{ext,(wif|subset)}'
+	output : 'wif/' + pattern_ext + '.{ext,(wif|subset)}'
 	message : 'extract lines {input.spl} from {input.src}'
 	shell : '''
 
@@ -186,10 +187,10 @@ rule downsample :
 		wif = 'wif/' + dataset_pattern + '.wif',
 		shf = 'wif/' + dataset_pattern + '.wif.lines.shuf{seed}'
 
-	output : 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.wif.sample'
+	output : 'wif/' + pattern_ext + '.wif.sample'
 	log :
-		log = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample.log',
-		time = 'wif/' + dataset_pattern + '.shuf{seed}.max{cov}.wif.sample.time'
+		log = 'wif/' + pattern_ext + '.wif.sample.log',
+		time = 'wif/' + pattern_ext + '.wif.sample.time'
 
 	message : '''
 
@@ -226,12 +227,12 @@ rule select_reads :
 	input :
 		scr = 'scripts/subsam.py',
 		bam = 'bam/' + dataset_pattern + '.bam',
-		sub = 'wif/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.subset'
+		sub = 'wif/' + pattern_ext + '.subset'
 
-	output : 'bam/' + dataset_pattern + '.shuf{seed,[0-9]+}.max{cov,[0-9]+}.bam'
+	output : 'bam/' + pattern_ext + '.bam'
 	log :
-		log = 'bam/' + dataset_pattern + '.shuf{seed}.max{cov}.bam.log',
-		time = 'bam/' + dataset_pattern + '.shuf{seed}.max{cov}.bam.time'
+		log = 'bam/' + pattern_ext + '.bam.log',
+		time = 'bam/' + pattern_ext + '.bam.time'
 
 	message : 'selecting reads from {input.bam} according to {input.sub}'
 	shell : '''
