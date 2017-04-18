@@ -11,7 +11,7 @@ coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
 
 # scripts
-scripts = ['get.matrix.py', 'get.sfi.py', 'get.variants.py', 'wiftools.py']
+scripts = ['get.matrix.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
 scregex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
@@ -117,7 +117,7 @@ rule get_wif :
 # get a snv/fragment info (snv) file from a bam / var pair
 rule get_sfi :
 	input :
-		scr = 'scripts/get.sfi.py',
+		scr = 'scripts/subsam.py',
 		bam = 'bam/' + dataset_pattern + '.bam',
 		var = 'vcf/' + vcf_pattern + '.var'
 
@@ -133,7 +133,7 @@ rule get_sfi :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      samtools view {input.bam} | python {input.scr} {input.var} \
+      samtools view {input.bam} | python {input.scr} -v {input.var} \
          > {output} 2> {log.log} '''
 
 # get a variants (SNVs) file from a vcf file
