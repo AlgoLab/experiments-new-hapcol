@@ -41,13 +41,13 @@ datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosom
 # master rule
 rule all :
 	input :
-		expand(pjoin(out_dir, 'inck', '{paths}.shuf{seed}.max{max}.{ea}.out_hc'),
+		expand('inck/{paths}.shuf{seed}.max{max}.{ea}.out_hc',
 			paths = datasets_exp,
 			seed = seeds,
                         max = max_covs,
                         ea = ea_vals
                      ),
-		expand(pjoin(out_dir, 'inck-merged', '{paths}.shuf{seed}.max{max}.merged.{ea}.out_hc'),
+		expand('inck-merged/{paths}.shuf{seed}.max{max}.merged.{ea}.out_hc',
 			paths = datasets_exp,
 			seed = seeds,
                         max = max_covs,
@@ -58,7 +58,7 @@ rule inck_hapcol:
 	input:
 		wif_file = pjoin(wif_dir, '{paths}.shuf{seed}.max{max}.wif')
 	output:
-		pjoin(out_dir, 'inck', '{paths}.shuf{seed}.max{max}.{ea}.out_hc')
+		'inck/{paths}.shuf{seed}.max{max}.{ea}.out_hc'
 	threads:
 		1
 	params:
@@ -80,7 +80,7 @@ rule inck_hapcol_merged:
 	input:
 		wif_file = pjoin(merged_dir, '{paths}.shuf{seed}.max{max}.merged.wif')
 	output:
-		pjoin(out_dir, 'inck-merged', '{paths}.shuf{seed}.max{max}.merged.{ea}.out_hc')
+		'inck-merged/{paths}.shuf{seed}.max{max}.merged.{ea}.out_hc'
 	threads:
 		1
 	params:
