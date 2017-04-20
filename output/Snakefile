@@ -3,7 +3,7 @@ import os.path
 #
 # for testing and comparing the new hapcol
 #----------------------------------------------------------------------
-
+#
 root_dir = '/data/experiments-new-hapcol/'
 
 # utils
@@ -21,39 +21,43 @@ out_dir = base_path('output')
 hapcol = pjoin(prog_dir, "increase-k-hapcol", "build", "hapcol")
 
 # datasets
-datasets = ['ashk', 'sim']
+data = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 chromosomes = [21] #, 1]
-coverages = [5, 10, 15] #, 20, 25, 30, 'all']
 seeds = [1] #, 2, 3]
+coverages = [5, 10, 15, 20, 25, 30, 'all']
 max_covs = [20, 30]
 
 ea_vals=['05_1', '05_01', '05_001', '05_0001'] 
 # "01_1" "01_01" "01_001" "01_0001" "1_1" "1_01" "1_001" "1_0001")
 
-
-datasets_exp = ['{}.pacbio.{}.chr{}.cov{}'.format(dataset, individual, chromosome, coverage)
-	for dataset in datasets
+# lists
+datasets = ['{}.pacbio.{}.chr{}.cov{}'.format(data, individual, chromosome, coverage)
+	for data in data
 	for individual in individuals
 	for chromosome in chromosomes
 	for coverage in coverages]
 
+datasets_ext = ['{}.shuf{}.max{}'.format(dataset, seed, max)
+	for dataset in datasets
+	for seed in seeds
+	for max in [20]]
+
+#
 # master rule
+#----------------------------------------------------------------------
 rule all :
 	input :
-		expand('inck/{paths}.shuf{seed}.max{max}.{ea}.out_hc',
-			paths = datasets_exp,
-			seed = seeds,
-                        max = max_covs,
-                        ea = ea_vals
-                     ),
-		expand('inck-merged/{paths}.shuf{seed}.max{max}.merged.{ea}.out_hc',
-			paths = datasets_exp,
-			seed = seeds,
-                        max = max_covs,
-                        ea = ea_vals
-                     )
+		expand('inck/{pattern}.{ea}.out_hc',
+			pattern = datasets_ext,
+			ea = ea_vals),
+		expand('inck-merged/{pattern}.merged.{ea}.out_hc',
+			pattern = datasets_ext,
+			ea = ea_vals)
 
+#
+# run increase-k hapcol
+#----------------------------------------------------------------------
 rule inck_hapcol:
 	input:
 		wif_file = pjoin(wif_dir, '{paths}.shuf{seed}.max{max}.wif')
