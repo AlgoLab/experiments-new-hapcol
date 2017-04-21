@@ -11,7 +11,7 @@ individuals = ['child'] # mother, father, ..
 coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
 seeds = [1] # 2, 3, .. for downsampling
-max_covs = [20, 30]
+max_covs = [20, 25, 30]
 
 # scripts
 scripts = ['subvert.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
