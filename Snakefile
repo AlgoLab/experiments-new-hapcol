@@ -14,7 +14,7 @@ seeds = [1] # 2, 3, .. for downsampling
 max_covs = [20, 30]
 
 # scripts
-scripts = ['get.matrix.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
+scripts = ['subvert.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
@@ -89,9 +89,9 @@ rule link_wif :
 # the lines and convert this to wif, using the var file
 rule get_wif :
 	input :
-		script = 'scripts/get.matrix.py',
-		sfi = 'wif/' + dataset_pattern + '.sfi',
-		var = 'vcf/' + vcf_pattern + '.var'
+		script = 'scripts/subvert.py',
+		var = 'vcf/' + vcf_pattern + '.var',
+		sfi = 'wif/' + dataset_pattern + '.sfi'
 
 	output :
 		wif = 'wif/' + dataset_pattern + '.wif',
@@ -108,9 +108,8 @@ rule get_wif :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' \
-         {input.sfi} | python {input.script} -s -w -t {output.sub} {input.var} | \
-            sort -nk1,1 > {output.wif} 2> {log.log} '''
+      awk '(($2==0 || $2==16) && ($9 != "#insertions")) {{print NR,$0}}' {input.sfi} | \
+         python {input.script} -w -t {output.sub} {input.var} > {output.wif} '''
 
 # get a snv/fragment info (snv) file from a bam / var pair
 rule get_sfi :
