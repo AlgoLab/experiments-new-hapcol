@@ -165,7 +165,7 @@ rule link_downsampled_wif :
 # extract from wif (or a set of reads) file (the lines of) the sample
 rule extract_sample :
 	input :
-		source = 'wif/' + pattern_ext + '.{ext}',
+		source = 'wif/' + dataset_pattern + '.{ext}',
 		sample = 'wif/' + pattern_ext + '.wif.sample'
 
 	output : 'wif/' + pattern_ext + '.{ext,(wif|subset)}'
@@ -190,13 +190,13 @@ rule downsample :
 
 	message : '''
 
-   downsampling {input.wif} to coverage {wildcards.cov}
+   downsampling {input.wif} to coverage {wildcards.max}
    according to {input.shuf} '''
 
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.script} -s {wildcards.cov} {input.shuf} {input.wif} \
+      python {input.script} -s {wildcards.max} {input.shuf} {input.wif} \
          > {output} 2> {log.log} '''
 
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
