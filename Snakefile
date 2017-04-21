@@ -237,6 +237,45 @@ rule select_reads :
       samtools view -h {input.bam} | python {input.script} -s {input.sub} | \
          samtools view -hb - > {output} 2> {log.log} '''
 
+# perform a sanity check to ensure that we downsample the bam correctly
+rule sanity_check :
+	input :
+                wif = 'wif/' + pattern_ext + '.wif',
+		check = 'wif/' + pattern_ext + '.sfi.wif'
+
+	output : 'wif/' + pattern_ext + '.sfi.wif.diff'
+	message : 'check {input.wif} against {input.check}'
+	shell : 'diff {input.wif} {input.check} > {output}'
+
+# extract the wif from the selected sfi for a sanity check against the
+# downsampled wif
+rule sanity_wif :
+	input :
+		script = 'scripts/subvert.py',
+		var = 'vcf/' + vcf_pattern + '.var',
+		sfi = 'wif/' + pattern_ext + '.sfi'
+
+	output : 'wif/' + pattern_ext + '.sfi.wif'
+	message : 'obtain wif from {input.sfi} for sanity check'
+	shell : '''
+
+   python {input.script} -w {input.var} {input.sfi} > {output} '''
+
+# select reads from an sfi file in the same way we would for the bam
+# file (e.g., for the purposes of a sanity check)
+rule select_lines :
+	input :
+		sfi = 'wif/' + dataset_pattern + '.sfi',
+		sub = 'wif/' + pattern_ext + '.subset'
+
+	output : 'wif/' + pattern_ext + '.sfi'
+	message : 'select lines {input.sub} from {input.sub}'
+	shell : '''
+
+   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.sfi} | join - \
+      <(awk '{{printf "%.20d\\n", $1}}' {input.sub} | sort) | \
+         sed 's/^[0-9]* //' > {output} '''
+
 #
 # obtain a (red-blue-) merged wif from a wif
 #----------------------------------------------------------------------
