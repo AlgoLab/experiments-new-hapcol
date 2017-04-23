@@ -9,8 +9,8 @@ individuals = ['child'] # mother, father, ..
 coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
 max_covs = [20, 30]
-seeds = [1, 2, 3]
 Hs = [15, 20, 25]
+seeds = [1] # 2, 3, ..
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
@@ -22,13 +22,14 @@ pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|chi
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{out_dir}/{data}.pacbio.child.chr{chr}.cov{cov}.shuf1.max{max}.H{H}.phased.vcf',
+		expand('{out_dir}/{data}.pacbio.child.chr{chr}.cov{cov}.shuf{seed}.max{max}.h{H}.phased.vcf',
 			out_dir = out_dir.split(),
 			data = datasets,
 			chr = chromosomes,
 			cov = coverages,
 			max = max_covs,
 			H = Hs)
+			seed = seeds,
 
 #
 # run whatshap on an instance
@@ -38,10 +39,10 @@ rule run_whatshap :
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
 		bam = 'bam/' + pattern_ext + '.bam'
 
-	output : '{out_dir}/' + pattern_ext + '.H{H,[0-9]+}.phased.vcf'
+	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.phased.vcf'
 	log :
-		log = '{out_dir}/' + pattern_ext + '.H{H}.log',
-		time = '{out_dir}/' + pattern_ext + '.H{H}.time'
+		log = '{out_dir}/' + pattern_ext + '.h{H}.log',
+		time = '{out_dir}/' + pattern_ext + '.h{H}.time'
 
 	message : '''
 

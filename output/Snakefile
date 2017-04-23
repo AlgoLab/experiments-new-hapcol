@@ -24,8 +24,8 @@ hapcol = pjoin(prog_dir, "increase-k-hapcol", "build", "hapcol")
 data = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 chromosomes = [21] #, 1]
-seeds = [1] #, 2, 3]
 coverages = [5, 10, 15, 20, 25, 30, 'all']
+seeds = [1] # 2, 3, .. for downsampling
 max_covs = [20, 30]
 
 ea_vals=['05_1', '05_01', '05_001', '05_0001'] 
