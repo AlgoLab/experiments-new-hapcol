@@ -23,10 +23,10 @@ hapcol = pjoin(prog_dir, "increase-k-hapcol", "build", "hapcol")
 # datasets
 data = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
-chromosomes = [21] #, 1]
+chromosomes = [21, 1]
 coverages = [5, 10, 15, 20, 25, 30, 'all']
 seeds = [1] # 2, 3, .. for downsampling
-max_covs = [20, 30]
+max_covs = [20, 25, 30]
 
 ea_vals=['05_1', '05_01', '05_001', '05_0001'] 
 # "01_1" "01_01" "01_001" "01_0001" "1_1" "1_01" "1_001" "1_0001")

@@ -8,9 +8,9 @@ datasets = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
-max_covs = [20, 30]
-Hs = [15, 20, 25]
+max_covs = [20, 25, 30]
 seeds = [1] # 2, 3, ..
+Hs = [15, 20, 25, 30]
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
