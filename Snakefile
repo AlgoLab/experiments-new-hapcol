@@ -48,7 +48,10 @@ rule master :
 
 		expand('wif/{pattern}.{ext}.info_/blocks_',
 			pattern = datasets + datasets_ext,
-			ext = ['wif', 'merged.wif'])
+			ext = ['wif', 'merged.wif']),
+		expand('vcf/{data}.child.chr{chr}.phased.vcf',
+			data = data,
+			chr = chromosomes)
 
 #
 # link to files from phasing comparison experiments directory
