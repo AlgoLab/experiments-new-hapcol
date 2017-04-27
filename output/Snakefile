@@ -31,17 +31,24 @@ max_covs = [20, 25, 30]
 ea_vals=['05_1', '05_01', '05_001', '05_0001'] 
 # "01_1" "01_01" "01_001" "01_0001" "1_1" "1_01" "1_001" "1_0001")
 
-# lists
-datasets = ['{}.pacbio.{}.chr{}.cov{}'.format(data, individual, chromosome, coverage)
+# everything of max coverage 20
+slice_one = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, coverage, seed, max)
 	for data in data
 	for individual in individuals
 	for chromosome in chromosomes
-	for coverage in coverages]
-
-datasets_ext = ['{}.shuf{}.max{}'.format(dataset, seed, max)
-	for dataset in datasets
+        for coverage in coverages
 	for seed in seeds
 	for max in [20]]
+
+# venture into max coverage 25 territory, but only for chr21 and a
+# some of the smaller average coverages
+slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, coverage, seed, max)
+	for data in data
+	for individual in individuals
+	for chromosome in [21]
+        for coverage in [5, 10, 15, 20]
+	for seed in seeds
+        for max in [25]]
 
 #
 # master rule
@@ -49,10 +56,10 @@ datasets_ext = ['{}.shuf{}.max{}'.format(dataset, seed, max)
 rule all :
 	input :
 		expand('inck/{pattern}.{ea}.out_hc',
-			pattern = datasets_ext,
+			pattern = slice_one + slice_two,
 			ea = ea_vals),
 		expand('inck-merged/{pattern}.merged.{ea}.out_hc',
-			pattern = datasets_ext,
+			pattern = slice_one + slice_two,
 			ea = ea_vals)
 
 #

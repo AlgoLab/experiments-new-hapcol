@@ -17,19 +17,35 @@ vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosom
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
+# everything of max coverage 20
+slice_one = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, coverage, seed, max, h)
+	for data in datasets
+	for individual in individuals
+	for chromosome in chromosomes
+	for coverage in coverages
+	for seed in seeds
+	for max in [20]
+	for h in [15, 20]]
+
+# venture into max coverage 25 territory, but only for chr21 and a
+# some of the smaller average coverage
+slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, coverage, seed, max, h)
+        for data in datasets
+        for individual in individuals
+        for chromosome in [21]
+        for coverage in [5, 10, 15, 20]
+        for seed in seeds
+	for max in [25]
+	for h in [15, 20, 25]]
+
 #
 # master rule
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{out_dir}/{data}.pacbio.child.chr{chr}.cov{cov}.shuf{seed}.max{max}.h{H}.phased.vcf',
+		expand('{out_dir}/{pattern}.phased.vcf',
 			out_dir = out_dir.split(),
-			data = datasets,
-			chr = chromosomes,
-			cov = coverages,
-			max = max_covs,
-			H = Hs)
-			seed = seeds,
+			pattern = slice_one + slice_two)
 
 #
 # run whatshap on an instance
