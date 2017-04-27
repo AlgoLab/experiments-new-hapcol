@@ -44,7 +44,11 @@ rule master :
 		expand('merged_wif/{pattern}.merged.wif',
 			pattern = datasets + datasets_ext),
 		expand('bam/{pattern}.bam',
-			pattern = datasets + datasets_ext)
+			pattern = datasets + datasets_ext),
+
+		expand('wif/{pattern}.{ext}.info_/blocks_',
+			pattern = datasets + datasets_ext,
+			ext = ['wif', 'merged.wif'])
 
 #
 # link to files from phasing comparison experiments directory
