@@ -14,7 +14,7 @@ seeds = [1] # 2, 3, .. for downsampling
 max_covs = [20, 25, 30]
 
 # scripts
-scripts = ['subvert.py', 'subsam.py', 'get.variants.py', 'wiftools.py']
+scripts = ['subsam.py', 'subvcf.py', 'subvert.py', 'wiftools.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
@@ -136,7 +136,7 @@ rule get_sfi :
 # get a variants (SNVs) file from a vcf file
 rule get_var :
 	input :
-		script = 'scripts/get.variants.py',
+		script = 'scripts/subvcf.py',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
 	output : 'vcf/' + vcf_pattern + '.var'
@@ -147,11 +147,8 @@ rule get_var :
 	message : 'obtaining SNVs file {output} from {input.vcf}'
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} python {input.script} \
-      tmp_{wildcards.dataset}_{wildcards.individual} {input.vcf} \
-         > {log.log} 2>&1
-   mv tmp_{wildcards.dataset}_{wildcards.individual}_{wildcards.chromosome}.var \
-      {output} '''
+   /usr/bin/time -v -o {log.time} \
+      python {input.script} -v {input.vcf} > {output} 2> {log.log} '''
 
 #
 # downsample a wif file to a specified max coverage
