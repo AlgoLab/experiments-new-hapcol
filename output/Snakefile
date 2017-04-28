@@ -31,6 +31,10 @@ max_covs = [20, 25, 30]
 ea_vals=['05_1', '05_01', '05_001', '05_0001'] 
 # "01_1" "01_01" "01_001" "01_0001" "1_1" "1_01" "1_001" "1_0001")
 
+# common patterns
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
+pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
+
 # everything of max coverage 20
 slice_one = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, coverage, seed, max)
 	for data in data
@@ -108,3 +112,30 @@ rule inck_hapcol_merged:
 		"-a {params.a} " +
 		"-A " +
 		"&> {log}"
+
+#
+# convert output haplotypes to phased vcf and compare to true phasing
+#----------------------------------------------------------------------
+rule compare_vcfs :
+	input :
+		true = root_dir + 'vcf/' + vcf_pattern + '.phased.vcf',
+		vcf = '{dir}/' + pattern_ext + '{ext}.{ea}.phased.vcf'
+
+	output : '{dir}/' + pattern_ext + '{ext,(.merged|)}.{ea}.diff'
+	message : 'comparing phasing {input.vcf} to true phasing {input.true}'
+	shell : 'whatshap compare {input.true} {input.vcf} > {output}'
+
+# convert haplotype to a phased vcf
+rule phase_vcf :
+	input :
+		script = root_dir + 'scripts/subvcf.py',
+		hap = '{dir}/' + pattern_ext + '{ext}.{ea}.out_hc',
+		sites = root_dir+'wif/'+pattern_ext+'{ext}.wif.info_/sites_',
+		vcf = root_dir + 'vcf/' + vcf_pattern + '.unphased.vcf'
+
+	output : '{dir}/' + pattern_ext + '{ext,(.merged|)}.{ea}.phased.vcf'
+	message : 'adding phase information from {input.hap} to {input.vcf}'
+	shell : '''
+
+   python {input.script} -p {input.hap} {input.sites} {input.vcf} \
+      > {output} '''
