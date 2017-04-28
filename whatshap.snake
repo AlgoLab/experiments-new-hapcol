@@ -70,3 +70,15 @@ rule run_whatshap :
    /usr/bin/time -v -o {log.time} \
       whatshap phase -o {output} -H {wildcards.H} \
          {input.vcf} {input.bam} > {log.log} 2>&1 '''
+
+#
+# compare phased vcfs to true phasing
+#----------------------------------------------------------------------
+rule compare_vcfs :
+	input :
+		true = 'vcf/' + vcf_pattern + '.phased.vcf',
+		vcf = '{out_dir}/' + pattern_ext + '.h{H}.phased.vcf'
+
+	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.diff'
+	message : 'comparing phasing {input.vcf} to true phasing {input.true}'
+	shell : 'whatshap compare {input.true} {input.vcf} > {output}'
