@@ -59,10 +59,10 @@ slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}'.format(data, individual, ch
 #----------------------------------------------------------------------
 rule all :
 	input :
-		expand('inck/{pattern}.{ea}.out_hc',
+		expand('inck/{pattern}.{ea}.diff',
 			pattern = slice_one + slice_two,
 			ea = ea_vals),
-		expand('inck-merged/{pattern}.merged.{ea}.out_hc',
+		expand('inck-merged/{pattern}.merged.{ea}.diff',
 			pattern = slice_one + slice_two,
 			ea = ea_vals)
 
