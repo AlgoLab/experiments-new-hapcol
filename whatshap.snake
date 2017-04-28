@@ -43,7 +43,7 @@ slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{out_dir}/{pattern}.phased.vcf',
+		expand('{out_dir}/{pattern}.diff',
 			out_dir = out_dir.split(),
 			pattern = slice_one + slice_two)
 
