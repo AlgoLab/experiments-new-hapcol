@@ -6,22 +6,24 @@ out_dir = 'output/whatshap'
 # datasets
 datasets = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
-coverages = [5, 10, 15, 20, 25, 30, 'all']
 chromosomes = [1, 21]
-max_covs = [20, 25, 30]
+states = ['full', 'hetero']
+coverages = [5, 10, 15] #, 20, 25, 30, 'all']
 seeds = [1] # 2, 3, ..
+max_covs = [20, 25, 30]
 Hs = [15, 20, 25, 30]
 
 # common patterns
-vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
-dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
-pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}'
+dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}'
+pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
 # everything of max coverage 20
-slice_one = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, coverage, seed, max, h)
+slice_one = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, state, coverage, seed, max, h)
 	for data in datasets
 	for individual in individuals
 	for chromosome in chromosomes
+	for state in states
 	for coverage in coverages
 	for seed in seeds
 	for max in [20]
@@ -29,10 +31,11 @@ slice_one = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual
 
 # venture into max coverage 25 territory, but only for chr21 and a
 # some of the smaller average coverage
-slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, coverage, seed, max, h)
+slice_two = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, state, coverage, seed, max, h)
         for data in datasets
         for individual in individuals
         for chromosome in [21]
+	for state in states
         for coverage in [5, 10, 15, 20]
         for seed in seeds
 	for max in [25]
@@ -43,8 +46,8 @@ slice_two = ['{}.pacbio.{}.chr{}.cov{}.shuf{}.max{}.h{}'.format(data, individual
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{out_dir}/{pattern}.diff',
-			out_dir = out_dir.split(),
+		expand('{dir}/{pattern}.diff',
+			dir = out_dir.split(),
 			pattern = slice_one + slice_two)
 
 #
@@ -52,7 +55,7 @@ rule master :
 #----------------------------------------------------------------------
 rule run_whatshap :
 	input :
-		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		vcf = 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf',
 		bam = 'bam/' + pattern_ext + '.bam'
 
 	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.phased.vcf'
@@ -76,7 +79,7 @@ rule run_whatshap :
 #----------------------------------------------------------------------
 rule compare_vcfs :
 	input :
-		true = 'vcf/' + vcf_pattern + '.phased.vcf',
+		true = 'vcf/{dataset}.{individual}.chr{chromosome}.phased.vcf',
 		vcf = '{out_dir}/' + pattern_ext + '.h{H}.phased.vcf'
 
 	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.diff'
