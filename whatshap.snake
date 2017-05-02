@@ -2,13 +2,15 @@
 # for running whatshap
 #----------------------------------------------------------------------
 out_dir = 'output/whatshap'
+old_dir = 'output/old_whatshap'
+oldwhatshap = 'programs/old_whatshap/build/dp'
 
 # datasets
 datasets = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
 chromosomes = [1, 21]
 states = ['full', 'hetero']
-coverages = [5, 10, 15] #, 20, 25, 30, 'all']
+coverages = [5, 10, 15, 20, 25, 30, 'all']
 seeds = [1] # 2, 3, ..
 max_covs = [20, 25, 30]
 Hs = [15, 20, 25, 30]
@@ -54,6 +56,11 @@ rule master :
 			h = [15, 20, 25],
 			pattern = slice_two),
 
+		# note that some of slice two also completed (see dir)
+		expand('{dir}/{pattern}.out_wif',
+			dir = old_dir.split(),
+			pattern = slice_one),
+
 #
 # run whatshap on an instance
 #----------------------------------------------------------------------
@@ -77,6 +84,22 @@ rule run_whatshap :
    /usr/bin/time -v -o {log.time} \
       whatshap phase -o {output} -H {wildcards.H} \
          {input.vcf} {input.bam} > {log.log} 2>&1 '''
+
+# run the old version of whatshap on a wif file
+rule run_old_whatshap :
+	input : 'input_wif/' + pattern_ext + '.wif'
+	output : '{old_dir}/' + pattern_ext + '.out_wif'
+
+	log :
+		log = '{old_dir}/' + pattern_ext + '.log',
+		time = '{old_dir}/' + pattern_ext + '.time',
+		hap = '{old_dir}/' + pattern_ext + '.hap'
+
+	message : 'running old version of whatshap on {input}'
+	shell : '''
+
+   /usr/bin/time -v -o {log.time} \
+      {oldwhatshap} -h {log.hap} -a {input} > {output} 2> {log.log} '''
 
 #
 # compare phased vcfs to true phasing
