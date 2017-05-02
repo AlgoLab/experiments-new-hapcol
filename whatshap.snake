@@ -19,36 +19,40 @@ dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father
 pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
 # everything of max coverage 20
-slice_one = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, state, coverage, seed, max, h)
+slice_one = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, state, coverage, seed, max)
 	for data in datasets
 	for individual in individuals
 	for chromosome in chromosomes
-	for state in states
+	for state in ['hetero']
 	for coverage in coverages
 	for seed in seeds
-	for max in [20]
-	for h in [15, 20]]
+	for max in [20]]
 
 # venture into max coverage 25 territory, but only for chr21 and a
-# some of the smaller average coverage
-slice_two = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}.h{}'.format(data, individual, chromosome, state, coverage, seed, max, h)
+# some of the smaller average coverages
+slice_two = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, state, coverage, seed, max)
         for data in datasets
         for individual in individuals
         for chromosome in [21]
-	for state in states
-        for coverage in [5, 10, 15, 20]
+	for state in ['hetero']
+	for coverage in [5, 10, 15, 20]
         for seed in seeds
-	for max in [25]
-	for h in [15, 20, 25]]
+	for max in [25]]
 
 #
 # master rule
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{dir}/{pattern}.diff',
+		expand('{dir}/{pattern}.h{h}.diff',
 			dir = out_dir.split(),
-			pattern = slice_one + slice_two)
+			h = [15, 20],
+			pattern = slice_one),
+
+		expand('{dir}/{pattern}.h{h}.diff',
+			dir = out_dir.split(),
+			h = [15, 20, 25],
+			pattern = slice_two),
 
 #
 # run whatshap on an instance
