@@ -133,12 +133,12 @@ rule phase_vcf :
 	input :
 		script = root_dir + 'scripts/subvcf.py',
 		hap = '{dir}/' + pattern_ext + '{ext}.{ea}.out_hc',
-		sites = root_dir+'wif/'+pattern_ext+'{ext}.wif.info_/sites_',
+		block_sites = root_dir+'wif/'+pattern_ext+'{ext}.wif.info_/block_sites_',
 		vcf = root_dir + 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf'
 
 	output : '{dir}/' + pattern_ext + '{ext,(.merged|)}.{ea}.phased.vcf'
 	message : 'adding phase information from {input.hap} to {input.vcf}'
 	shell : '''
 
-   python {input.script} -p {input.hap} {input.sites} {input.vcf} \
+   python {input.script} -p {input.hap} {input.block_sites} {input.vcf} \
       > {output} '''
