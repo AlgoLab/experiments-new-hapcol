@@ -8,9 +8,8 @@ hap_dir = '/home/prj_rnabwt/haplotyping'
 # datasets
 data = ['ashk', 'sim']
 individuals = ['child'] # mother, father, ..
-chromosomes = [1, 21]
-states = ['full', 'hetero']
 coverages = [5, 10, 15, 20, 25, 30, 'all']
+chromosomes = [1, 21]
 seeds = [1] # 2, 3, .. for downsampling
 max_covs = [20, 25, 30]
 
@@ -19,16 +18,15 @@ scripts = ['subsam.py', 'subvcf.py', 'subvert.py', 'wiftools.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
 # common patterns
-vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}'
-dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}'
-pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
+dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
+pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
 
 # lists (the datasets in the form of a list)
-datasets = ['{}.pacbio.{}.chr{}.{}.cov{}'.format(data, individual, chromosome, state, coverage)
+datasets = ['{}.pacbio.{}.chr{}.cov{}'.format(data, individual, chromosome, coverage)
 	for data in data
 	for individual in individuals
 	for chromosome in chromosomes
-	for state in states
 	for coverage in coverages]
 
 datasets_ext = ['{}.shuf{}.max{}'.format(dataset, seed, max)
@@ -46,7 +44,7 @@ rule master :
 		expand('merged_wif/{pattern}.merged.wif',
 			pattern = datasets + datasets_ext),
 		expand('bam/{pattern}.bam',
-			pattern = datasets_ext),
+			pattern = datasets + datasets_ext),
 
 		expand('wif/{pattern}.{ext}.info_/blocks_',
 			pattern = datasets + datasets_ext,
@@ -59,14 +57,14 @@ rule master :
 # link to files from phasing comparison experiments directory
 #----------------------------------------------------------------------
 rule link_vcf :
-	input : data_dir + '/vcf/{dataset}.{individual}.chr{chromosome}.{phase}.vcf'
-	output : 'vcf/{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{phase,(phased|unphased)}.vcf'
+	input : data_dir + '/vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
+	output : 'vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
 rule link_bam_bai :
-	input : data_dir + '/bam/{dataset}.{platform}.{individual}.chr{chromosome}.cov{coverage}.{ext}'
-	output : 'bam/{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}.{ext,(bam|bai)}'
+	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
@@ -124,7 +122,7 @@ rule get_wif :
 rule get_sfi :
 	input :
 		script = 'scripts/subsam.py',
-		bam = 'bam/{dataset}.{platform}.{individual}.chr{chromosome}.cov{coverage}.bam',
+		bam = 'bam/' + dataset_pattern + '.bam',
 		var = 'vcf/' + vcf_pattern + '.var'
 
 	output : 'wif/' + dataset_pattern + '.sfi'
@@ -146,10 +144,7 @@ rule get_sfi :
 rule get_var :
 	input :
 		script = 'scripts/subvcf.py',
-		vcf = 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf'
-
-	params : lambda wildcards :
-		'-H' if wildcards.state == 'hetero' else '-v'
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
 	output : 'vcf/' + vcf_pattern + '.var'
 	log :
@@ -160,7 +155,7 @@ rule get_var :
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      python {input.script} {params} {input.vcf} > {output} 2> {log.log} '''
+      python {input.script} -v {input.vcf} > {output} 2> {log.log} '''
 
 #
 # downsample a wif file to a specified max coverage
@@ -231,7 +226,7 @@ rule get_lines :
 rule select_reads :
 	input :
 		script = 'scripts/subsam.py',
-		bam = 'bam/{dataset}.{platform}.{individual}.chr{chromosome}.cov{coverage}.bam',
+		bam = 'bam/' + dataset_pattern + '.bam',
 		sub = 'wif/' + pattern_ext + '.subset'
 
 	output : 'bam/' + pattern_ext + '.bam'
