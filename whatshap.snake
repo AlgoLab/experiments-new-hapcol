@@ -57,7 +57,7 @@ rule master :
 			pattern = slice_two),
 
 		# note that some of slice two also completed (see dir)
-		expand('{dir}/{pattern}.out_wif',
+		expand('{dir}/{pattern}.diff',
 			dir = old_dir.split(),
 			pattern = slice_one),
 
@@ -107,8 +107,23 @@ rule run_old_whatshap :
 rule compare_vcfs :
 	input :
 		true = 'vcf/{dataset}.{individual}.chr{chromosome}.phased.vcf',
-		vcf = '{out_dir}/' + pattern_ext + '.h{H}.phased.vcf'
+		vcf = '{dir}/' + pattern_ext + '{ext}.phased.vcf'
 
-	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.diff'
+	output : '{dir}/' + pattern_ext + '{ext}.diff'
 	message : 'comparing phasing {input.vcf} to true phasing {input.true}'
 	shell : 'whatshap compare {input.true} {input.vcf} > {output}'
+
+# convert old whatshap hap format to a phased vcf
+rule phase_vcf :
+	input :
+		script = 'scripts/subvcf.py',
+		hap = '{old_dir}/' + pattern_ext + '.hap',
+		block_sites = 'wif/' + pattern_ext + '.wif.info_/block_sites_',
+		vcf = 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf'
+
+	output : '{old_dir}/' + pattern_ext + '.phased.vcf'
+	message : 'adding phase information from {input.hap} to {input.vcf}'
+	shell : '''
+
+   python {input.script} -p {input.hap} {input.block_sites} {input.vcf} \
+      > {output} '''
