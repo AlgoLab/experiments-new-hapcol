@@ -82,13 +82,13 @@ rule run_whatshap :
 # run the core whatshap dp on a wif file
 #----------------------------------------------------------------------
 rule run_core_whatshap :
-	input : 'wif/' + whatshap_pattern + '{pattern}.wif'
-	output : 'output/core_wh/' + whatshap_pattern + '{pattern}.hap'
+	input : 'wif/' + post_pattern + '.wif'
+	output : 'output/core_wh/' + post_pattern + '.hap'
 
 	log :
-		log = 'output/core_wh/' + whatshap_pattern + '{pattern}.log',
-		time = 'output/core_wh/' + whatshap_pattern + '{pattern}.time',
-		wif = 'output/core_wh/' + whatshap_pattern + '{pattern}.wif'
+		log = 'output/core_wh/' + post_pattern + '.log',
+		time = 'output/core_wh/' + post_pattern + '.time',
+		wif = 'output/core_wh/' + post_pattern + '.wif'
 
 	message : 'running core whatshap dp on {input}'
 
