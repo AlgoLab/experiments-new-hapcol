@@ -6,6 +6,7 @@ data_dir = '/data/phasing-comparison-experiments'
 hap_dir = '/home/prj_rnabwt/haplotyping'
 
 # scripts and programs
+time = '/usr/bin/time'
 whatshap = 'programs/whatshap/venv/bin/whatshap'
 scripts = ['wiftools.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
@@ -113,7 +114,7 @@ rule get_wif :
 
 	shell : '''
    
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       {whatshap} phase -o /dev/null {params.realignment} \
          --output-wif {output} -H {params.h} \
          {input.vcf} {input.bam} > {log.transcript} 2> {log.log} '''
@@ -155,7 +156,7 @@ rule downsample :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       python {input.script} -s {wildcards.max} {input.shuf} {input.wif} \
          > {output} 2> {log.log} '''
 
@@ -197,7 +198,7 @@ rule merge_wif :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       python {input.script} -c {input.ccs} {input.wif} \
          > {output} 2> {log.log} '''
 
@@ -219,7 +220,7 @@ rule get_redblue_ccs :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       python {input.script} {input.mat} > {output} 2> {log.log} '''
 
 # convert wif file to a (zygosity) matrix
@@ -238,7 +239,7 @@ rule get_zygosity_matrix :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       python {input.script} -z {input.wif} | awk '{{ \
          for(i=3; i<= NF; ++i) {{ \
             if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \

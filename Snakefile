@@ -3,6 +3,7 @@
 #----------------------------------------------------------------------
 #
 include : 'setup.snake'
+time = '/usr/bin/time'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
@@ -73,7 +74,7 @@ rule run_whatshap :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       whatshap phase -o {output} {params.realignment} -H {params.h} \
          {input.vcf} {input.bam} > {log.log} 2>&1 '''
 
@@ -93,7 +94,7 @@ rule run_core_whatshap :
 
 	shell : '''
 
-   /usr/bin/time -v -o {log.time} \
+   {time} -v -o {log.time} \
       {corewh} -h {output} -a {input} > {log.wif} 2> {log.log} '''
 
 #
