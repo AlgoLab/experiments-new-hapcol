@@ -13,31 +13,45 @@ hapchat = 'programs/increase-k-hapcol/build/hapcol'
 ea_vals = ['05_1', '05_01', '05_001', '05_0001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
+#
 # everything of max coverage 20
-whatshap_one = ['{}.raw.h{}'.format(dataset, h)
+#----------------------------------------------------------------------
+whatshap_max20 = ['{}.raw.h{}'.format(dataset, h)
 	for dataset in datasets
         for h in [15, 20]]
-post_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_max20 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in datasets
 	for merge in ['.', '.merged.']
     	for max in [15, 20]]
-slice_one = whatshap_one + post_one
+slice_max20 = whatshap_max20 + post_max20
 
-# datasets for chr21 and some of the smaller average coverages
+#
+# subset of datasets for chr21 and some of the smaller avg. coverages
+#----------------------------------------------------------------------
 subset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
         for data in data
         for chromosome in [21]
-	for coverage in [5, 10, 15, 20]]
+	for coverage in [5, 10, 15]]
 
 # subsets of max coverage 20
-whatshap_subset_one = ['{}.raw.h{}'.format(dataset, h)
+whatshap_s1_max20 = ['{}.raw.h{}'.format(dataset, h)
 	for dataset in subset_one
         for h in [15, 20]]
-post_subset_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_s1_max20 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in subset_one
 	for merge in ['.', '.merged.']
     	for max in [15, 20]]
-slice_subset_one = whatshap_subset_one + post_subset_one
+slice_s1_max20 = whatshap_s1_max20 + post_s1_max20
+
+# subsets of max coverage 25
+whatshap_s1_max25 = ['{}.raw.h{}'.format(dataset, h)
+	for dataset in subset_one
+        for h in [15, 20, 25]]
+post_s1_max25 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+	for dataset in subset_one
+	for merge in ['.', '.merged.']
+	for max in [15, 20, 25]]
+slice_s1_max25 = whatshap_s1_max25 + post_s1_max25
 
 #
 # master rule
@@ -45,13 +59,13 @@ slice_subset_one = whatshap_subset_one + post_subset_one
 rule master :
 	input :
 		expand('output/whatshap/{pattern}.diff',
-			pattern = whatshap_one),
+			pattern = whatshap_max20),
 
 		expand('output/core_wh/{pattern}.diff',
-			pattern = slice_subset_one),
+			pattern = slice_s1_max20),
 
 		expand('output/hapchat/{pattern}.{ea}.diff',
-			pattern = slice_one,
+			pattern = slice_max20 + slice_s1_max25,
 			ea = ea_vals)
 
 #
