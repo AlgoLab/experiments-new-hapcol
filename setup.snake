@@ -8,7 +8,7 @@ hap_dir = '/home/prj_rnabwt/haplotyping'
 # scripts and programs
 time = '/usr/bin/time'
 whatshap = 'programs/whatshap/venv/bin/whatshap'
-scripts = ['wiftools.py']
+scripts = ['wiftools.py', 'subvcf.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
 # datasets
@@ -41,7 +41,7 @@ whatshap_downsample = ['{}.raw.h{}'.format(dataset, h)
 	for dataset in datasets
 	for h in hs]
 
-outside_whatshap = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_whatshap = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in datasets
 	for merge in ['.', '.merged.']
         for max in max_covs]
@@ -49,10 +49,10 @@ outside_whatshap = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
 #
 # master rule
 #----------------------------------------------------------------------
-rule master :
+rule setup :
 	input :
 		expand('wif/{pattern}.wif.info_/blocks_',
-			pattern = whatshap_downsample + outside_whatshap),
+			pattern = whatshap_downsample + post_whatshap),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
 			data = data,
@@ -110,7 +110,8 @@ rule get_wif :
 
 	message : '''
 
-   obtaining wif file {output} from {input.bam} / {input.vcf} pair '''
+   obtaining wif file {output} from {input.bam} / {input.vcf} pair,
+   after selecting reads down to max coverage {params.h} '''
 
 	shell : '''
    
@@ -151,7 +152,7 @@ rule downsample :
 
 	message : '''
 
-   downsampling {input.wif} to coverage {wildcards.max}
+   psuedorandom downsampling of {input.wif} to coverage {wildcards.max}
    according to {input.shuf} '''
 
 	shell : '''
@@ -253,6 +254,6 @@ rule wif_info :
 		script = 'scripts/wiftools.py',
 		wif = '{path}.wif'
 
-	output : '{path}.wif.info_/blocks_'
+	output : '{path}.wif.info_/block_sites_'
 	message : 'obtaining info for {input.wif}'
 	shell : 'python {input.script} -i {input.wif}'

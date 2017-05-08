@@ -19,7 +19,7 @@ post_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
 slice_one = whatshap_one + post_one
 
 # datasets for chr21 and some of the smaller average coverages
-datasubset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+subset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
         for data in data
         for chromosome in [21]
 	for coverage in [5, 10, 15, 20]]
