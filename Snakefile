@@ -1,129 +1,139 @@
 #
-# for running whatshap
+# for running all the different haplotyping softwares
 #----------------------------------------------------------------------
-out_dir = 'output/whatshap'
-old_dir = 'output/old_whatshap'
-oldwhatshap = 'programs/old_whatshap/build/dp'
+#
+include : 'setup.snake'
 
-# datasets
-datasets = ['ashk', 'sim']
-individuals = ['child'] # mother, father, ..
-chromosomes = [1, 21]
-states = ['full', 'hetero']
-coverages = [5, 10, 15, 20, 25, 30, 'all']
-seeds = [1] # 2, 3, ..
-max_covs = [20, 25, 30]
-Hs = [15, 20, 25, 30]
-
-# common patterns
-vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}'
-dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}'
-pattern_ext = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.{state,(hetero|full)}.cov{coverage,(all|[0-9]+)}.shuf{seed,[0-9]+}.max{max,[0-9]+}'
+# softwares
+corewh = 'programs/core_whatshap/build/dp'
 
 # everything of max coverage 20
-slice_one = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, state, coverage, seed, max)
-	for data in datasets
-	for individual in individuals
-	for chromosome in chromosomes
-	for state in ['hetero']
-	for coverage in coverages
-	for seed in seeds
-	for max in [20]]
+whatshap_one = ['{}.raw.h{}'.format(dataset, h)
+	for dataset in datasets
+        for h in [15, 20]]
+post_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+	for dataset in datasets
+	for merge in ['.', '.merged.']
+    	for max in [15, 20]]
+slice_one = whatshap_one + post_one
 
-# venture into max coverage 25 territory, but only for chr21 and a
-# some of the smaller average coverages
-slice_two = ['{}.pacbio.{}.chr{}.{}.cov{}.shuf{}.max{}'.format(data, individual, chromosome, state, coverage, seed, max)
-        for data in datasets
-        for individual in individuals
+# datasets for chr21 and some of the smaller average coverages
+datasubset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+        for data in data
         for chromosome in [21]
-	for state in ['hetero']
-	for coverage in [5, 10, 15, 20]
-        for seed in seeds
-	for max in [25]]
+	for coverage in [5, 10, 15, 20]]
+
+# subsets of max coverage 20
+whatshap_subset_one = ['{}.raw.h{}'.format(dataset, h)
+	for dataset in datasubset_one
+        for h in [15, 20]]
+post_subset_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+	for dataset in datasubset_one
+	for merge in ['.', '.merged.']
+    	for max in [15, 20]]
+slice_subset_one = whatshap_subset_one + post_subset_one
 
 #
 # master rule
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('{dir}/{pattern}.h{h}.diff',
-			dir = out_dir.split(),
-			h = [15, 20],
-			pattern = slice_one),
+		expand('output/whatshap/{pattern}.diff',
+			pattern = whatshap_one),
 
-		expand('{dir}/{pattern}.h{h}.diff',
-			dir = out_dir.split(),
-			h = [15, 20, 25],
-			pattern = slice_two),
-
-		# note that some of slice two also completed (see dir)
-		expand('{dir}/{pattern}.diff',
-			dir = old_dir.split(),
-			pattern = slice_one),
+		expand('output/core_wh/{pattern}.diff',
+			pattern = slice_subset_one)
 
 #
-# run whatshap on an instance
+# run whatshap on a bam / vcf pair
 #----------------------------------------------------------------------
 rule run_whatshap :
 	input :
-		vcf = 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf',
-		bam = 'bam/' + pattern_ext + '.bam'
+		bam = 'bam/' + dataset_pattern + '.bam',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : '{out_dir}/' + pattern_ext + '.h{H,[0-9]+}.phased.vcf'
+	params :
+		realignment = '', # TODO: add this function
+		h = lambda wildcards :
+			'1000' if wildcards.h == 'N' else wildcards.h
+
+	output : 'output/whatshap/' + whatshap_pattern + '.phased.vcf'
+
 	log :
-		log = '{out_dir}/' + pattern_ext + '.h{H}.log',
-		time = '{out_dir}/' + pattern_ext + '.h{H}.time'
+		log = 'output/whatshap/' + whatshap_pattern + '.log',
+		time = 'output/whatshap/' + whatshap_pattern + '.time'
 
 	message : '''
 
-   running whatshap on {input.vcf} / {input.bam} pair,
-   cutting coverage down to {wildcards.H} '''
+   running whatshap on bam/vcf pair :
+
+   {input.bam} / {input.vcf}
+
+   selecting coverage down to {wildcards.h} '''
 
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      whatshap phase -o {output} -H {wildcards.H} \
+      whatshap phase -o {output} {params.realignment} -H {params.h} \
          {input.vcf} {input.bam} > {log.log} 2>&1 '''
 
-# run the old version of whatshap on a wif file
-rule run_old_whatshap :
-	input : 'input_wif/' + pattern_ext + '.wif'
-	output : '{old_dir}/' + pattern_ext + '.out_wif'
+#
+# run the core whatshap dp on a wif file
+#----------------------------------------------------------------------
+rule run_core_whatshap :
+	input : 'wif/' + whatshap_pattern + '{pattern}.wif'
+	output : 'output/core_wh/' + whatshap_pattern + '{pattern}.hap'
 
 	log :
-		log = '{old_dir}/' + pattern_ext + '.log',
-		time = '{old_dir}/' + pattern_ext + '.time',
-		hap = '{old_dir}/' + pattern_ext + '.hap'
+		log = 'output/core_wh/' + whatshap_pattern + '{pattern}.log',
+		time = 'output/core_wh/' + whatshap_pattern + '{pattern}.time',
+		wif = 'output/core_wh/' + whatshap_pattern + '{pattern}.wif'
 
-	message : 'running old version of whatshap on {input}'
+	message : 'running core whatshap dp on {input}'
+
 	shell : '''
 
    /usr/bin/time -v -o {log.time} \
-      {oldwhatshap} -h {log.hap} -a {input} > {output} 2> {log.log} '''
+      {corewh} -h {output} -a {input} > {log.wif} 2> {log.log} '''
 
 #
 # compare phased vcfs to true phasing
 #----------------------------------------------------------------------
 rule compare_vcfs :
 	input :
-		true = 'vcf/{dataset}.{individual}.chr{chromosome}.phased.vcf',
-		vcf = '{dir}/' + pattern_ext + '{ext}.phased.vcf'
+		true = 'vcf/' + vcf_pattern + '.phased.vcf',
+		vcf = '{dir}/' + whatshap_pattern + '{pattern}.phased.vcf'
 
-	output : '{dir}/' + pattern_ext + '{ext}.diff'
-	message : 'comparing phasing {input.vcf} to true phasing {input.true}'
+	output : '{dir}/' + whatshap_pattern + '{pattern}.diff'
+
+	message : '''
+
+   comparing inferred phasing:
+
+   {input.vcf}
+
+   to true phasing: {input.true} '''
+
 	shell : 'whatshap compare {input.true} {input.vcf} > {output}'
 
-# convert old whatshap hap format to a phased vcf
+# convert old-skool hap format to a phased vcf
 rule phase_vcf :
 	input :
 		script = 'scripts/subvcf.py',
-		hap = '{old_dir}/' + pattern_ext + '.hap',
-		block_sites = 'wif/' + pattern_ext + '.wif.info_/block_sites_',
-		vcf = 'vcf/{dataset}.{individual}.chr{chromosome}.unphased.vcf'
+		hap = '{dir}/' + whatshap_pattern + '{pattern}.hap',
+		blocks = 'wif/' + whatshap_pattern + '{pattern}.wif.info_/block_sites_',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : '{old_dir}/' + pattern_ext + '.phased.vcf'
-	message : 'adding phase information from {input.hap} to {input.vcf}'
+	output : '{dir}/' + whatshap_pattern + '{pattern}.phased.vcf'
+
+	message : '''
+
+   adding phase information from {input.hap}
+   to {input.vcf},
+
+   obtaining: {output} '''
+
 	shell : '''
 
-   python {input.script} -p {input.hap} {input.block_sites} {input.vcf} \
+   python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
       > {output} '''
