@@ -30,6 +30,8 @@ max_covs = [15, 20, 25, 30]
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
+post_pattern = whatshap_pattern + '{mergebefore,(|.merged)}{downsample,(|.sh[0-9]+-max[0-9]+)}{mergeafter,(|.merged)}'
+hapchat_pattern = post_pattern + '.{ea,[0-9]+_[0-9]+}{balancing,(|.balanced)}'
 
 # common lists
 datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
