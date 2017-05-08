@@ -59,21 +59,6 @@ rule setup :
 			chr = chromosomes)
 
 #
-# link to files from phasing comparison experiments directory
-#----------------------------------------------------------------------
-rule link_vcf :
-	input : data_dir + '/vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
-	output : 'vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
-	message : 'linking {input} to {output}'
-	shell : 'ln -fsrv {input} {output}'
-
-rule link_bam_bai :
-	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
-	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
-	message : 'linking {input} to {output}'
-	shell : 'ln -fsrv {input} {output}'
-
-#
 # link to a script in the haplotyping/scripts directory, etc.
 #----------------------------------------------------------------------
 rule link_script :
@@ -86,6 +71,21 @@ rule link_red_blue :
         input : hap_dir + '/red_blue/build-red-blue-graph.py'
 	output : 'scripts/build-red-blue-graph.py'
 	message : 'linking script {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+#
+# link to files from phasing comparison experiments directory
+#----------------------------------------------------------------------
+rule link_vcf :
+	input : data_dir + '/vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
+	output : 'vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+rule link_bam_bai :
+	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
 #
