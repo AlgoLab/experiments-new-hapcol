@@ -31,10 +31,10 @@ subset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
 
 # subsets of max coverage 20
 whatshap_subset_one = ['{}.raw.h{}'.format(dataset, h)
-	for dataset in datasubset_one
+	for dataset in subset_one
         for h in [15, 20]]
 post_subset_one = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
-	for dataset in datasubset_one
+	for dataset in subset_one
 	for merge in ['.', '.merged.']
     	for max in [15, 20]]
 slice_subset_one = whatshap_subset_one + post_subset_one
@@ -50,7 +50,7 @@ rule master :
 		expand('output/core_wh/{pattern}.diff',
 			pattern = slice_subset_one),
 
-		expand('output/hapchat/{pattern}.{ea}.hap',
+		expand('output/hapchat/{pattern}.{ea}.diff',
 			pattern = slice_one,
 			ea = ea_vals)
 
@@ -113,14 +113,14 @@ rule run_hapchat :
 	input : 'wif/' + post_pattern + '.wif'
 
 	params :
-		e = lambda wildcards : '0.' + wildcards.ea.split('_')[0],
+		e = lambda wildcards : '0' + wildcards.ea.split('_')[0],
 		a = lambda wildcards : '0.' + wildcards.ea.split('_')[1]
 
-	output : 'output/hapchat/' + hapchat_pattern + '.hap'
+	output : 'output/hapchat/' + full_pattern + '.hap'
 
 	log :
-		log = 'output/hapchat/' + hapchat_pattern + '.log',
-		time = 'output/hapchat/' + hapchat_pattern + '.time'
+		log = 'output/hapchat/' + full_pattern + '.log',
+		time = 'output/hapchat/' + full_pattern + '.time'
 
 	message : 'running hapchat on {input}'
 
@@ -136,9 +136,9 @@ rule run_hapchat :
 rule compare_vcfs :
 	input :
 		true = 'vcf/' + vcf_pattern + '.phased.vcf',
-		vcf = '{dir}/' + whatshap_pattern + '{pattern}.phased.vcf'
+		vcf = '{dir}/' + full_pattern + '.phased.vcf'
 
-	output : '{dir}/' + whatshap_pattern + '{pattern}.diff'
+	output : '{dir}/' + full_pattern + '.diff'
 
 	message : '''
 
@@ -154,11 +154,11 @@ rule compare_vcfs :
 rule phase_vcf :
 	input :
 		script = 'scripts/subvcf.py',
-		hap = '{dir}/' + whatshap_pattern + '{pattern}.hap',
-		blocks = 'wif/' + whatshap_pattern + '{pattern}.wif.info_/block_sites_',
+		hap = '{dir}/' + full_pattern + '.hap',
+		blocks = 'wif/' + post_pattern + '.wif.info_/block_sites_',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : '{dir}/' + whatshap_pattern + '{pattern}.phased.vcf'
+	output : '{dir}/' + full_pattern + '.phased.vcf'
 
 	message : '''
 
