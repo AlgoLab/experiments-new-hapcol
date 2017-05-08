@@ -7,6 +7,11 @@ time = '/usr/bin/time'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
+hapchat = 'programs/increase-k-hapcol/build/hapcol'
+
+# epislon / alpha pairs for hapcol, and variants
+ea_vals = ['05_1', '05_01', '05_001', '05_0001']
+ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
 # everything of max coverage 20
 whatshap_one = ['{}.raw.h{}'.format(dataset, h)
@@ -43,7 +48,11 @@ rule master :
 			pattern = whatshap_one),
 
 		expand('output/core_wh/{pattern}.diff',
-			pattern = slice_subset_one)
+			pattern = slice_subset_one),
+
+		expand('output/hapchat/{pattern}.{ea}.hap',
+			pattern = slice_one,
+			ea = ea_vals)
 
 #
 # run whatshap on a bam / vcf pair
@@ -96,6 +105,30 @@ rule run_core_whatshap :
 
    {time} -v -o {log.time} \
       {corewh} -h {output} -a {input} > {log.wif} 2> {log.log} '''
+
+#
+# run hapchat with increase-k on a wif file
+#----------------------------------------------------------------------
+rule run_hapchat :
+	input : 'wif/' + post_pattern + '.wif'
+
+	params :
+		e = lambda wildcards : '0.' + wildcards.ea.split('_')[0],
+		a = lambda wildcards : '0.' + wildcards.ea.split('_')[1]
+
+	output : 'output/hapchat/' + hapchat_pattern + '.hap'
+
+	log :
+		log = 'output/hapchat/' + hapchat_pattern + '.log',
+		time = 'output/hapchat/' + hapchat_pattern + '.time'
+
+	message : 'running hapchat on {input}'
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {hapchat} -i {input} -o {output} -e {params.e} -a {params.a} -A \
+         > {log.log} 2>&1 '''
 
 #
 # compare phased vcfs to true phasing
