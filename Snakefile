@@ -16,10 +16,10 @@ ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001'
 #
 # everything of max coverage 20
 #----------------------------------------------------------------------
-whatshap_max20 = ['{}.raw.h{}'.format(dataset, h)
+whatshap_max20 = ['{}.h{}'.format(dataset, h)
 	for dataset in datasets
         for h in [15, 20]]
-post_max20 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_max20 = ['{}.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in datasets
 	for merge in ['.', '.merged.']
     	for max in [15, 20]]
@@ -28,26 +28,27 @@ slice_max20 = whatshap_max20 + post_max20
 #
 # subset of datasets for chr21 and some of the smaller avg. coverages
 #----------------------------------------------------------------------
-subset_one = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
         for data in data
         for chromosome in [21]
-	for coverage in [5, 10, 15]]
+	for coverage in [5, 10, 15]
+	for mode in realignment]
 
 # subsets of max coverage 20
-whatshap_s1_max20 = ['{}.raw.h{}'.format(dataset, h)
+whatshap_s1_max20 = ['{}.h{}'.format(dataset, h)
 	for dataset in subset_one
         for h in [15, 20]]
-post_s1_max20 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_s1_max20 = ['{}.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in subset_one
 	for merge in ['.', '.merged.']
     	for max in [15, 20]]
 slice_s1_max20 = whatshap_s1_max20 + post_s1_max20
 
 # subsets of max coverage 25
-whatshap_s1_max25 = ['{}.raw.h{}'.format(dataset, h)
+whatshap_s1_max25 = ['{}.h{}'.format(dataset, h)
 	for dataset in subset_one
         for h in [15, 20, 25]]
-post_s1_max25 = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_s1_max25 = ['{}.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in subset_one
 	for merge in ['.', '.merged.']
 	for max in [15, 20, 25]]
