@@ -54,7 +54,7 @@ post_whatshap = ['{}.hN{}sh1-max{}'.format(dataset, merge, max)
 #----------------------------------------------------------------------
 rule setup :
 	input :
-		expand('wif/{pattern}.wif.info_/blocks_',
+		expand('wif/{pattern}.wif.info_/block_sites_',
 			pattern = whatshap_downsample + post_whatshap),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
