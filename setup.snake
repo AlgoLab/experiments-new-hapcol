@@ -34,16 +34,17 @@ post_pattern = whatshap_pattern + '{mergebefore,(|.merged)}{downsample,(|.sh[0-9
 full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.balanced)}'
 
 # common lists
-datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
 	for data in data
 	for chromosome in chromosomes
-	for coverage in coverages]
+	for coverage in coverages
+	for mode in realignment]
 
-whatshap_downsample = ['{}.raw.h{}'.format(dataset, h)
+whatshap_downsample = ['{}.h{}'.format(dataset, h)
 	for dataset in datasets
 	for h in hs]
 
-post_whatshap = ['{}.raw.hN{}sh1-max{}'.format(dataset, merge, max)
+post_whatshap = ['{}.hN{}sh1-max{}'.format(dataset, merge, max)
 	for dataset in datasets
 	for merge in ['.', '.merged.']
         for max in max_covs]
@@ -90,16 +91,24 @@ rule link_bam_bai :
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
+rule link_reference :
+	input : data_dir + '/reference/human_g1k_v37.fasta'
+	output : 'reference/human_g1k_v37.fasta'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
 #
 # obtain a wif file from a bam / vcf pair using whatshap
 #----------------------------------------------------------------------
 rule get_wif :
 	input :
 		bam = 'bam/' + dataset_pattern + '.bam',
-		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
 
 	params :
-                realignment = '', # TODO: add this function
+                realignment = lambda wildcards, input :
+			'--reference '+input.ref if wildcards.realignment == 'realigned' else '',
 		h = lambda wildcards :
 			'1000' if wildcards.h == 'N' else wildcards.h
 
