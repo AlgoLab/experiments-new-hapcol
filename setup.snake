@@ -17,6 +17,7 @@ platforms = ['pacbio']
 individuals = ['child'] # mother, father, ..
 chromosomes = [1, 21]
 coverages = [5, 10, 15, 20, 25, 30, 'all']
+high_coverages = [40, 50, 60]
 
 # whatshap processing
 realignment = ['raw', 'realigned'] # whatshap realignment
@@ -37,7 +38,7 @@ full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.balanced)}'
 datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
 	for data in data
 	for chromosome in chromosomes
-	for coverage in coverages
+	for coverage in coverages + high_coverages
 	for mode in realignment]
 
 whatshap_downsample = ['{}.h{}'.format(dataset, h)
@@ -85,8 +86,28 @@ rule link_vcf :
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
+# from where we link the bam (bai) depends on the coverage
+def bam_source_link(wildcards) :
+
+	supp = ''
+	cov = wildcards.coverage
+
+	if wildcards.coverage in [str(c) for c in high_coverages] :
+		supp = '-cov60'
+
+		if wildcards.coverage == '60' :
+			cov = 'all'
+
+	return '{}{}/bam/{}.{}.{}.chr{}.cov{}.{}'.format(
+		data_dir, supp,
+		wildcards.dataset,
+		wildcards.platform,
+		wildcards.individual,
+		wildcards.chromosome,
+		cov, wildcards.ext)
+
 rule link_bam_bai :
-	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	input : bam_source_link
 	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
 	message : 'linking {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
