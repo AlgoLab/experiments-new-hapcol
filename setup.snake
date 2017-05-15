@@ -71,12 +71,6 @@ rule link_script :
 	message : 'linking script {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
-rule link_red_blue :
-        input : hap_dir + '/red_blue/build-red-blue-graph.py'
-	output : 'scripts/build-red-blue-graph.py'
-	message : 'linking script {input} to {output}'
-	shell : 'ln -fsrv {input} {output}'
-
 #
 # link to files from phasing comparison experiments directory
 #----------------------------------------------------------------------
@@ -215,68 +209,40 @@ rule get_lines :
 #----------------------------------------------------------------------
 rule merge_wif :
 	input :
-		script = 'scripts/wiftools.py',
-		wif = '{path}.wif',
-		ccs = '{path}.ccs'
-
-	output : '{path}.merged.wif'
-
-	log :
-		log = '{path}.merged.wif.log',
-		time = '{path}.merged.wif.time'
-
-	message : '''
-
-   merge reads of {input.wif} according to {input.ccs}, producing {output} '''
-
-	shell : '''
-
-   {time} -v -o {log.time} \
-      python {input.script} -c {input.ccs} {input.wif} \
-         > {output} 2> {log.log} '''
-
-# build red-blue graph, and obtain connected components (one per line)
-rule get_redblue_ccs :
-	input :
-		script = 'scripts/build-red-blue-graph.py',
-		mat = '{path}.mat'
-
-	output : '{path}.ccs'
-
-	log :
-		log = '{path}.ccs.log',
-		time = '{path}.ccs.time'
-
-	message : '''
-
-   obtain connected components {output} from {input.mat} using red-blue graph '''
-
-	shell : '''
-
-   {time} -v -o {log.time} \
-      python {input.script} {input.mat} > {output} 2> {log.log} '''
-
-# convert wif file to a (zygosity) matrix
-rule get_zygosity_matrix :
-	input :
-		script = 'scripts/wiftools.py',
+		script = 'scripts/rb-merge.py',
 		wif = '{path}.wif'
 
-	output : '{path}.mat'
+	params :
+		e = lambda wildcards : '0.' + wildcards.err,
+		m = lambda wildcards : '0.' + wildcards.max,
+		t = lambda wildcards : 10 ** int(wildcards.thresh),
+		n = lambda wildcards : 10 ** int(wildcards.neg)
+
+	output : '{path}.merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}.wif'
 
 	log :
-		log = '{path}.mat.log',
-		time = '{path}.mat.time'
+		log = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.log',
+		time = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.time',
+		graph = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.graph'
 
-	message : 'converting {input.wif} to (zygosity) matrix: {output}'
+	message : '''
+
+   merge reads of {input.wif},
+   with parameters:
+
+   error rate = {params.e},
+   max error rate = {params.m},
+   threshold = {params.t},
+   neg. threshold = {params.n}
+
+   producing: {output} '''
 
 	shell : '''
 
    {time} -v -o {log.time} \
-      python {input.script} -z {input.wif} | awk '{{ \
-         for(i=3; i<= NF; ++i) {{ \
-            if($i=="0"){{$i="G"}} ; if($i=="1"){{$i="C"}} }} ; \
-         print }}' > {output} 2> {log.log} '''
+      python {input.script} -v -e {params.e} -m {params.m} \
+         -t {params.t} -n {params.n} -w {input.wif} -o {output} \
+         -g {log.graph} > {log.log} 2>&1 '''
 
 #
 # obtain properties of a wif file
