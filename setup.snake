@@ -158,9 +158,9 @@ rule get_wif :
 rule extract_sample :
 	input :
 		source = '{path}.wif',
-		sample = '{path}.wif.sample.sh{seed}-max{max}'
+		sample = '{path}.wif.sample_s{seed}_m{max}'
 
-	output : '{path}.sh{seed,[0-9]+}-max{max,[0-9]+}.wif'
+	output : '{path}.downs_s{seed,[0-9]+}_m{max,[0-9]+}.wif'
 	message : 'extract lines {input.sample} from {input.source}'
 
 	shell : '''
@@ -174,13 +174,13 @@ rule downsample :
 	input :
 		script = 'scripts/wiftools.py',
 		wif = '{path}.wif',
-		shuf = '{path}.wif.lines.sh{seed}'
+		shuf = '{path}.wif.lines.shuf{seed}'
 
-	output : '{path}.wif.sample.sh{seed,[0-9]+}-max{max,[0-9]+}'
+	output : '{path}.wif.sample_s{seed,[0-9]+}_m{max,[0-9]+}'
 
 	log :
-		log = '{path}.wif.sample.sh{seed}-max{max}.log',
-		time = '{path}.wif.sample.sh{seed}-max{max}.time'
+		log = '{path}.wif.sample_s{seed}_m{max}.log',
+		time = '{path}.wif.sample_s{seed}_m{max}.time'
 
 	message : '''
 
@@ -196,7 +196,7 @@ rule downsample :
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
 rule permute_lines :
 	input : '{path}.lines'
-	output : '{path}.lines.sh{seed,[0-9]+}'
+	output : '{path}.lines.shuf{seed,[0-9]+}'
 	message : 'pseudorandom shuffle of {input} with seed {wildcards.seed}'
 	shell : '''
 
