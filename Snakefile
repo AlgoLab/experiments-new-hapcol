@@ -13,7 +13,7 @@ hapchat = 'programs/increase-k-hapcol/build/hapcol'
 full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.balanced)}'
 
 # epislon / alpha pairs for hapcol, and variants
-ea_vals = ['05_1', '05_01', '05_001', '05_0001']
+ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
 # downsamplings to a max cov. of 20
