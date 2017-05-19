@@ -194,3 +194,26 @@ rule phase_vcf :
 
    python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
       > {output} '''
+
+#
+# compute MEC score of phased vcf wrt instance, as a wif file
+#----------------------------------------------------------------------
+rule mec_score :
+	input :
+		script = 'scripts/wiftools.py',
+		vcf = '{dir}/' + full_pattern + '.phased.vcf',
+		wif = 'wif/' + post_pattern + '.wif'
+
+	output : '{dir}/' + full_pattern + '.mec'
+
+	message : '''
+
+   infer mec score of:
+
+   {input.vcf}
+
+   with respect to: {input.wif} '''
+
+	shell : '''
+
+   python {input.script} -v {input.vcf} {input.wif} > {output} '''
