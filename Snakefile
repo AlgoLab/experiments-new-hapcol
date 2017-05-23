@@ -7,10 +7,10 @@ time = '/usr/bin/time'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
-hapchat = 'programs/increase-k-hapcol/build/hapcol'
+hapchat = 'programs/balancing-hapcol/build/hapcol'
 
 # pattern (taking into account hapcol)
-full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.balanced)}'
+full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}'
 
 # epislon / alpha pairs for hapcol, and variants
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
@@ -132,14 +132,20 @@ rule run_core_whatshap :
       {corewh} -h {output} -a {input} > {log.wif} 2> {log.log} '''
 
 #
-# run hapchat with increase-k on a wif file
+# run hapchat with increase-k and balancing on a wif file
 #----------------------------------------------------------------------
 rule run_hapchat :
 	input : 'wif/' + post_pattern + '.wif'
 
 	params :
-		e = lambda wildcards : '0' + wildcards.ea.split('_')[0],
-		a = lambda wildcards : '0.' + wildcards.ea.split('_')[1]
+		epsilon = lambda wildcards :
+			'0' + wildcards.ea.split('_')[0],
+		alpha = lambda wildcards :
+			'0.' + wildcards.ea.split('_')[1],
+		balance_cov = lambda wildcards :
+			'1000' if wildcards.balancing.split('_')[0].split('b')[1] == 'N' else wildcards.balancing.split('_')[0].split('b')[1],
+		balance_ratio = lambda wildcards :
+			'0.' + wildcards.balancing.split('_')[1]
 
 	output : 'output/hapchat/' + full_pattern + '.hap'
 
@@ -152,8 +158,10 @@ rule run_hapchat :
 	shell : '''
 
    {time} -v -o {log.time} \
-      {hapchat} -i {input} -o {output} -e {params.e} -a {params.a} -A \
-         > {log.log} 2>&1 '''
+      {hapchat} -i {input} -o {output} -A \
+         -e {params.epsilon} -a {params.alpha} \
+         -b {params.balance_cov} -r {params.balance_ratio} \
+            > {log.log} 2>&1 '''
 
 #
 # compare phased vcfs to true phasing
