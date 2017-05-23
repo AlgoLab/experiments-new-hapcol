@@ -16,22 +16,38 @@ full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
-# downsamplings to a max cov. of 20
-downsamplings_20 = ['.downs_s{}_m{}'.format(seed, max)
-	for seed in seeds
-	for max in [15, 20]]
+#
+# useful list-defining functions
+#----------------------------------------------------------------------
+
+# downsampling to a specified list of max coverages
+def downs(maxs) :
+	return ['.downs_s{}_m{}'.format(seed, max)
+		for seed in seeds
+		for max in maxs]
+
+# datasets processed by whatshap to a specified list of max cov.
+def whatshap(datasets, maxs) :
+	return ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
+		for dataset in datasets
+		for h in maxs]
+
+# datasets postprocessed to a specified list of max cov
+def postproc(datsets, maxs) :
+	return ['{}.hN{}{}.no_merging'.format(dataset, merging, downsampling)
+	for dataset in datasets
+	for merging in mergings
+	for downsampling in downs(maxs)]
+
+# datasets both processed by whatshap and postprocessed to list of max cov.
+def sliceof(datasets, maxs) :
+	return whatshap(datasets, maxs) + postproc(datasets, maxs)
 
 #
 # everything of max coverage 20
 #----------------------------------------------------------------------
-whatshap_max20 = ['{}.h{}'.format(dataset, h)
-	for dataset in datasets
-        for h in [15, 20]]
-post_max20 = ['{}.hN{}{}'.format(dataset, merging, downsampling)
-	for dataset in datasets
-	for merging in [''] + mergings
-	for downsampling in downsamplings_20]
-slice_max20 = whatshap_max20 + post_max20
+whatshap_max20 = whatshap(datasets, [15, 20])
+slice_max20 = sliceof(datasets, [15, 20])
 
 #
 # subset of datasets for chr21 and some of the smaller avg. coverages
@@ -40,27 +56,14 @@ subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage
         for data in data
         for chromosome in [21]
 	for coverage in [5, 10, 15]
-	for mode in realignment]
+	for mode in ['realigned']]
 
 # subsets of max coverage 20
-whatshap_s1_max20 = ['{}.h{}'.format(dataset, h)
-	for dataset in subset_one
-        for h in [15, 20]]
-post_s1_max20 = ['{}.hN{}{}'.format(dataset, merging, downsampling)
-	for dataset in subset_one
-	for merging in [''] + mergings
-    	for downsampling in downsamplings_20]
-slice_s1_max20 = whatshap_s1_max20 + post_s1_max20
+whatshap_s1_max20 = whatshap(subset_one, [15, 20])
+slice_s1_max20 = sliceof(subset_one, [15, 20])
 
 # subsets of max coverage 25
-whatshap_s1_max25 = ['{}.h{}'.format(dataset, h)
-	for dataset in subset_one
-        for h in [15, 20, 25]]
-post_s1_max25 = ['{}.hN{}{}'.format(dataset, merging, downsampling)
-	for dataset in subset_one
-	for merging in [''] + mergings
-    	for downsampling in downsamplings_20]
-slice_s1_max25 = whatshap_s1_max25 + post_s1_max25
+slice_s1_max25 = sliceof(subset_one, [15, 20, 25])
 
 #
 # master rule
