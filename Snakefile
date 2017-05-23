@@ -16,6 +16,9 @@ full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
+# extensions desired
+exts = ['diff', 'mec']
+
 #
 # useful list-defining functions
 #----------------------------------------------------------------------
@@ -57,15 +60,18 @@ subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('output/whatshap/{pattern}.diff',
-			pattern = whatshap(datasets, [15, 20])),
+		expand('output/whatshap/{pattern}.{ext}',
+			pattern = whatshap(datasets, [15, 20])
+			ext = exts),
 
-		expand('output/core_wh/{pattern}.diff',
-			pattern = whatshap(subset_one, [15, 20])),
+		expand('output/core_wh/{pattern}.{ext}',
+			pattern = whatshap(subset_one, [15, 20]),
+			ext = exts),
 
-		expand('output/hapchat/{pattern}.{ea}.bN_0.diff',
+		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
 			pattern = sliceof(datasets, [15, 20]),
-			ea = ea_vals)
+			ea = ea_vals,
+			ext = exts),
 
 #
 # run whatshap on a bam / vcf pair
