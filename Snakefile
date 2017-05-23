@@ -44,12 +44,6 @@ def sliceof(datasets, maxs) :
 	return whatshap(datasets, maxs) + postproc(datasets, maxs)
 
 #
-# everything of max coverage 20
-#----------------------------------------------------------------------
-whatshap_max20 = whatshap(datasets, [15, 20])
-slice_max20 = sliceof(datasets, [15, 20])
-
-#
 # subset of datasets for chr21 and some of the smaller avg. coverages
 #----------------------------------------------------------------------
 subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
@@ -58,26 +52,19 @@ subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage
 	for coverage in [5, 10, 15]
 	for mode in ['realigned']]
 
-# subsets of max coverage 20
-whatshap_s1_max20 = whatshap(subset_one, [15, 20])
-slice_s1_max20 = sliceof(subset_one, [15, 20])
-
-# subsets of max coverage 25
-slice_s1_max25 = sliceof(subset_one, [15, 20, 25])
-
 #
 # master rule
 #----------------------------------------------------------------------
 rule master :
 	input :
 		expand('output/whatshap/{pattern}.diff',
-			pattern = whatshap_max20),
+			pattern = whatshap(datasets, [15, 20])),
 
 		expand('output/core_wh/{pattern}.diff',
-			pattern = slice_s1_max20),
+			pattern = whatshap(subset_one, [15, 20])),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.diff',
-			pattern = slice_max20,
+			pattern = sliceof(datasets, [15, 20]),
 			ea = ea_vals)
 
 #
