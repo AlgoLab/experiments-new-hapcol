@@ -73,7 +73,7 @@ rule master :
 		expand('output/core_wh/{pattern}.diff',
 			pattern = slice_s1_max20),
 
-		expand('output/hapchat/{pattern}.{ea}.diff',
+		expand('output/hapchat/{pattern}.{ea}.bN_0.diff',
 			pattern = slice_max20,
 			ea = ea_vals)
 
