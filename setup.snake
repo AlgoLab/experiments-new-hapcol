@@ -33,7 +33,7 @@ mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 	for err in error_rates
 	for max in max_errs
 	for thresh in thresholds
-	for neg in neg_threshs]
+	for neg in neg_threshs] + ['.no_merging']
 
 # downsampling to a max coverage (in a random greedy way)
 downsample_pattern = '.downs_s[0-9]+_m[0-9]+'
@@ -41,13 +41,13 @@ seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
 max_covs = [15, 20, 25, 30]
 downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 	for seed in seeds
-	for max in max_covs]
+	for max in max_covs] + ['.no_downs']
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
-post_pattern = whatshap_pattern + '{mergebefore,(|' + merge_pattern + ')}{downsample,(|' + downsample_pattern + ')}{mergeafter,(|' + merge_pattern + ')}'
+post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern + ')}{downsample,(.no_downs|' + downsample_pattern + ')}{mergeafter,(.no_merging|' + merge_pattern + ')}'
 
 # common lists
 datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
@@ -56,13 +56,13 @@ datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, 
 	for coverage in coverages + high_coverages
 	for mode in realignment]
 
-whatshap_downsample = ['{}.h{}'.format(dataset, h)
+whatshap_downsample = ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
 	for dataset in datasets
 	for h in hs]
 
-post_whatshap = ['{}.hN{}{}'.format(dataset, merging, downsampling)
+post_whatshap = ['{}.hN{}{}.no_merging'.format(dataset, merging, downsampling)
 	for dataset in datasets
-	for merging in [''] + mergings
+	for merging in mergings
         for downsampling in downsamplings]
 
 #
@@ -178,6 +178,13 @@ rule extract_sample :
       <(awk '{{printf "%.20d\\n", $1}}' {input.sample} | sort) | \
          sed 's/^[0-9]* //' > {output} '''
 
+# dummy rule to ensure the naming is consistent
+rule no_downsampling :
+	input : '{path}.wif'
+	output : '{path}.no_downs.wif'
+	message : 'perform no downsampling'
+	shell : 'cp {input} {output}'
+
 # greedily downsample wif to a coverage according to a shuffle
 rule downsample :
 	input :
@@ -258,6 +265,13 @@ rule merge_wif :
       python {input.script} -v -e {params.e} -m {params.m} \
          -t {params.t} -n {params.n} -w {input.wif} -o {output} \
          -g {log.graph} > {log.log} 2>&1 '''
+
+# dummy rule to ensure the naming is consistent
+rule no_merging :
+	input : '{path}.wif'
+	output : '{path}.no_merging.wif'
+	message : 'perform no merging'
+	shell : 'cp {input} {output}'
 
 #
 # obtain properties of a wif file
