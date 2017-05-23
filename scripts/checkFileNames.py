@@ -33,17 +33,21 @@ def main():
     logging.info("Parsing Inck files")
     for df in os.listdir(args.inck_dir):
         tokens = df.rstrip().split(".")
-        if(len(tokens) == 9):
-            nn = ".".join(tokens[:-2]) + ".no_merged.no_downs." + ".".join([tokens[-2], tokens[-1]])
+        if(len(tokens) == 10):
+            nn = ".".join(tokens[:-3]) + ".no_merging.no_downs.no_merging." + ".".join(tokens[-3:])
             os.rename(args.inck_dir + df.rstrip(), args.inck_dir + nn)
             print(df.rstrip())
-        if(len(tokens) == 10):
-            nn = ".".join(tokens[:-3]) + ".no_merged." + ".".join([tokens[-3], tokens[-2], tokens[-1]])
+        if(len(tokens) == 11):
+            nn = ".".join(tokens[:-4]) + ".no_merging." + tokens[-4] + ".no_merging." + ".".join(tokens[-3:])
+            os.rename(args.inck_dir + df.rstrip(), args.inck_dir + nn)
+            print(df.rstrip())
+        if(len(tokens) == 12):
+            nn = ".".join(tokens[:-3]) + ".no_merging." + ".".join(tokens[-3:])
             os.rename(args.inck_dir + df.rstrip(), args.inck_dir + nn)
             print(df.rstrip())
     for df in os.listdir(args.inck_dir):
         tokens = df.rstrip().split(".")
-        if(len(tokens) != 11):
+        if(len(tokens) != 13 and ".".join(tokens[-2:]) != "phased.vcf"):
             logging.error("Error: %s", df.rstrip())
             exit()
     logging.info("Program Finshed")
