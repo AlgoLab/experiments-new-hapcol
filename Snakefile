@@ -83,10 +83,12 @@ rule master :
 rule run_whatshap :
 	input :
 		bam = 'bam/' + dataset_pattern + '.bam',
-		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
 
 	params :
-		realignment = '', # TODO: add this function
+		realignment = lambda wildcards, input :
+                        '--reference '+input.ref if wildcards.realignment == 'realigned' else '',
 		h = lambda wildcards :
 			'1000' if wildcards.h == 'N' else wildcards.h
 
