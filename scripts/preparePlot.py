@@ -23,14 +23,23 @@ def getScore(log_file):
                 cleanline = line.split(" | ")[1]
                 if cleanline.startswith("OPTIMUM:"):
                     return int(cleanline.split(":")[1])
+def getMEC(mec_file):
+    with open(mec_file, 'r') as mf:
+        line = mf.readline().rstrip()
+        return line.split(":")[1].replace(" ", "")
 
-def getSER(diff_file):
+
+def getQUAL(diff_file):
+    qual = {}
     with open(diff_file, 'r') as d:
         nl = 0
         for l in d.readlines():
             nl += 1
             if nl == 23:
-                return(l.rstrip().replace(" ", "").split(":")[1]).replace("%", "")
+                qual["ser"]=(l.rstrip().replace(" ", "").split(":")[1]).replace("%", "")
+            if nl == 27:
+                qual["ham"]=(l.rstrip().replace(" ", "").split(":")[1]).replace("%", "")
+    return qual
 
 def getTimeMem(log_file):
     info = {}
@@ -80,8 +89,8 @@ def main():
         out.write("Tool,Data,Technology,Individual,Chr,MeanCov,RawRealigned,WhDowns")
         out.write(",Merge,MergeE,MergeM,MergeT,MergeN,MergeTimeSec,MergeMaxMemMB")
         out.write(",RndDowns,RndDownsSeed,RndDownsMaxCov,RndDownsTimeSec,RndDownsMaxMemMB")
-        out.write(",Epsilon,Alpha")
-        out.write(",SwErrRatePerc,MecScore,PhasTimeSec,PhasMaxMemMB")
+        out.write(",FurtherMerging,Epsilon,Alpha,BalThr,BalRatio")
+        out.write(",SwErrRatePerc,HamDistPerc,MecScore,PhasTimeSec,PhasMaxMemMB")
         out.write("\n")
         # Hapchat
         num_inck = 0
@@ -92,23 +101,23 @@ def main():
                 out.write("HapChat,")
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
-                ser = getSER(args.inck_dir + df)
+                qual = getQUAL(args.inck_dir + df)
                 tfile = args.inck_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
                     logging.error("File not found: %s", tfile)
                     exit()
                 info = getTimeMem(tfile)
-                lfile = args.inck_dir + dataset + ".log"
+                lfile = args.inck_dir + dataset + ".mec"
                 if not os.path.isfile(lfile):
                     logging.error("File not found: %s", lfile)
                     exit()
-                score = getScore(lfile)
+                score = getMEC(lfile)
                 # print(dataset + " " + str(score) +
-                #       ser + " " +
+                #       qual["ser"] + " " +
                 #       str(info["time"]) + " " +
                 #       str(info["mem"]))
                 merge = "no,NA,NA,NA,NA,NA,NA"
-                if(ds[7] != "no_merged"):
+                if(ds[7] != "no_merging"):
                     mfile = args.wif_dir + ".".join(ds[0:8]) + ".wif.time"
                     if not os.path.isfile(mfile):
                         logging.error("File not found: %s", mfile)
@@ -125,7 +134,7 @@ def main():
                 downs = "no,NA,NA,NA,NA"
                 if(ds[8] != "no_downs"):
                     dfile = args.wif_dir + ".".join(ds[0:7])
-                    if(ds[7] != "no_merged"):
+                    if(ds[7] != "no_merging"):
                         dfile += "." + ds[7]
                     dfile += ".wif.sample_" + "_".join(ds[8].split('_')[1:]) + ".time"
                     if not os.path.isfile(dfile):
@@ -138,15 +147,22 @@ def main():
                             dfields[2][1:] + "," + \
                             str(downs_info["time"]) + "," + \
                             str(downs_info["mem"])
+                if(ds[9] != "no_merging"):
+                    logging.error("Unrecognized further merging step!")
+                    exit()
                 out.write(",".join(ds[0:4]) + "," +
                           ds[4].replace("cov", "") + "," +
                           ds[5] + "," +
                           ds[6].replace("h", "") + "," +
                           merge + "," +
                           downs + "," +
-                          "0." + ds[9].split("_")[0] + "," +
-                          "0." + ds[9].split("_")[1] + "," +
-                          ser + "," +
+                          "no" + "," +
+                          "0." + ds[10].split("_")[0] + "," +
+                          "0." + ds[10].split("_")[1] + "," +
+                          ds[11].split("_")[0][1:] + "," +
+                          ds[11].split("_")[1] + "," +
+                          qual["ser"] + "," +
+                          qual["ham"] + "," +
                           str(score) + "," +
                           str(info["time"]) + "," +
                           str(info["mem"]))
@@ -161,7 +177,7 @@ def main():
                 out.write("WhatsHap,")
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
-                ser = getSER(args.wh_dir + df)
+                qual = getQUAL(args.wh_dir + df)
                 tfile = args.wh_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
                     logging.error("File not found: %s", tfile)
@@ -172,15 +188,22 @@ def main():
                     logging.error("File not found: %s", whlfile)
                     exit()
                 wh_info = getWhInfo(whlfile)
+                msfile = args.wh_dir + dataset + ".mec"
+                if not os.path.isfile(msfile):
+                    logging.error("File not found: %s", msfile)
+                    exit()
+                score = getMEC(msfile)
                 out.write(",".join(ds[0:4]) + "," +
                           ds[4].replace("cov", "") + "," +
                           ds[5] + "," +
                           ds[6].replace("h", "") + "," +
                           "no,NA,NA,NA,NA,NA,NA" + "," +
                           "no,NA,NA,NA,NA" + "," +
+                          "no,NA,NA" + "," +
                           "NA,NA" + "," +
-                          ser + "," +
-                          str(wh_info["score"]) + "," +
+                          qual["ser"] + "," +
+                          qual["ham"] + "," +
+                          score + "," +
                           str(wh_info["time"]) + "," +
                           str(info["mem"]))
                 out.write("\n")
