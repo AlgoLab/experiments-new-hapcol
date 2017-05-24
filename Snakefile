@@ -39,22 +39,21 @@ def whatshap(datasets_, maxs_) :
 # datasets postprocessed to a specified list of max cov
 def postproc(datasets_, maxs_) :
 	return ['{}.hN{}{}.no_merging'.format(dataset_, merging_, downsampling_)
-	for dataset_ in datasets_
-	for merging_ in mergings
-        for downsampling_ in downs(maxs_)]
+		for dataset_ in datasets_
+		for merging_ in mergings
+		for downsampling_ in downs(maxs_)]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
 def sliceof(datasets_, maxs_) :
 	return whatshap(datasets_, maxs_) + postproc(datasets_, maxs_)
 
-#
-# subset of datasets for chr21 and some of the smaller avg. coverages
-#----------------------------------------------------------------------
-subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
-        for data in data
-        for chromosome in [21]
-	for coverage in [5, 10, 15]
-	for mode in ['realigned']]
+# define a subset of the datasets in terms of chromosomes and coverages
+def datasubset(chromosomes_, coverages_) :
+	return ['{}.pacbio.child.chr{}.cov{}.{}'.format(data_, chromosome_, coverage_, mode_)
+		for data_ in data
+		for chromosome_ in chromosomes_
+		for coverage_ in coverages_
+		for mode_ in realignment]
 
 #
 # master rule
@@ -62,17 +61,26 @@ subset_one = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage
 rule master :
 	input :
 		expand('output/whatshap/{pattern}.{ext}',
-			pattern = whatshap(datasets, [15, 20])
+			pattern = whatshap(datasets, [15, 20]),
 			ext = exts),
 
 		expand('output/core_wh/{pattern}.{ext}',
-			pattern = whatshap(subset_one, [15, 20]),
+			pattern = whatshap(
+				datasubset([21], [5, 10]),
+				[15, 20]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
 			pattern = sliceof(datasets, [15, 20]),
 			ea = ea_vals,
 			ext = exts),
+
+		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
+			pattern = sliceof(
+				datasubset(chromosomes, [5, 10, 15]),
+				[25]),
+			bal = ['bN_0', 'b20_45'],
+			ext = ['hap'])
 
 #
 # run whatshap on a bam / vcf pair
