@@ -4,6 +4,7 @@
 #
 include : 'setup.snake'
 time = '/usr/bin/time'
+compare = 'programs/whatshap/venv/bin/whatshap compare'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
@@ -169,6 +170,9 @@ rule compare_vcfs :
 
 	output : '{dir}/' + full_pattern + '.diff'
 
+	log :
+		bed = '{dir}/' + full_pattern + '.bed'
+
 	message : '''
 
    comparing inferred phasing:
@@ -177,7 +181,10 @@ rule compare_vcfs :
 
    to true phasing: {input.true} '''
 
-	shell : 'whatshap compare {input.true} {input.vcf} > {output}'
+	shell : '''
+
+   {compare} --switch-error-bed {log.bed} \
+      {input.true} {input.vcf} > {output} '''
 
 # convert old-skool hap format to a phased vcf
 rule phase_vcf :
