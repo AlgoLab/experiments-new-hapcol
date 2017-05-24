@@ -24,27 +24,27 @@ exts = ['diff', 'mec']
 #----------------------------------------------------------------------
 
 # downsampling to a specified list of max coverages
-def downs(maxs) :
-	return ['.downs_s{}_m{}'.format(seed, max)
-		for seed in seeds
-		for max in maxs]
+def downs(maxs_) :
+	return ['.downs_s{}_m{}'.format(seed_, max_)
+		for seed_ in seeds
+		for max_ in maxs_]
 
 # datasets processed by whatshap to a specified list of max cov.
-def whatshap(datasets, maxs) :
-	return ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
-		for dataset in datasets
-		for h in maxs]
+def whatshap(datasets_, maxs_) :
+	return ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset_, h_)
+		for dataset_ in datasets_
+		for h_ in maxs_]
 
 # datasets postprocessed to a specified list of max cov
-def postproc(datsets, maxs) :
-	return ['{}.hN{}{}.no_merging'.format(dataset, merging, downsampling)
-	for dataset in datasets
-	for merging in mergings
-	for downsampling in downs(maxs)]
+def postproc(datasets_, maxs_) :
+	return ['{}.hN{}{}.no_merging'.format(dataset_, merging_, downsampling_)
+	for dataset_ in datasets_
+	for merging_ in mergings
+        for downsampling_ in downs(maxs_)]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
-def sliceof(datasets, maxs) :
-	return whatshap(datasets, maxs) + postproc(datasets, maxs)
+def sliceof(datasets_, maxs_) :
+	return whatshap(datasets_, maxs_) + postproc(datasets_, maxs_)
 
 #
 # subset of datasets for chr21 and some of the smaller avg. coverages
