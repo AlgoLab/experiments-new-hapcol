@@ -1,73 +1,73 @@
-#data	  chr	  cov	realignment	whds	     merge	     rds	bal.time/time	   time	bal.time	    mem	bal.mem	 swer	bal.swer	
- ashk	chr21	cov15	  realigned	 h25	no_merging	no_downs	     0.657873	2230.28	 1467.24	1283028	1283668	0.54%	   0.52%	
-  sim	chr21	cov15	  realigned	 h25	no_merging	no_downs	     0.660001	2980.42	 1967.08	1373256	1373900	0.00%	   0.01%	
- ashk	 chr1	cov15	        raw	  hN	no_merging	     m25	       0.6671	5929.98	 3955.89	 918868	 921404	0.96%	   1.01%	
-  sim	chr21	cov15	        raw	 h25	no_merging	no_downs	     0.667363	2752.07	 1836.63	1035936	1039444	0.12%	   0.15%	
- ashk	chr21	cov15	  realigned	  hN	no_merging	     m25	     0.673049	3667.37	 2468.32	2441208	2441588	0.53%	   0.52%	
- ashk	chr21	cov15	        raw	  hN	no_merging	     m25	        0.674	2877.67	 1939.55	1749720	1754300	0.84%	   0.99%	
-  sim	chr21	cov15	  realigned	  hN	no_merging	     m25	     0.679155	5050.63	 3430.16	1528188	1529088	0.00%	   0.01%	
- ashk	 chr1	cov15	  realigned	  hN	no_merging	     m25	     0.687118	7217.60	 4959.34	1336924	1338428	0.25%	   0.28%	
-  sim	chr21	cov15	        raw	  hN	no_merging	     m25	     0.687233	3636.19	 2498.91	1527068	1527880	0.13%	   0.19%	
-  sim	 chr1	cov15	  realigned	  hN	no_merging	     m25	     0.694557	5949.91	 4132.55	1482060	1482312	0.05%	   0.07%	
-  sim	 chr1	cov15	  realigned	 h25	no_merging	no_downs	      0.69537	4436.79	 3085.21	 796032	 796208	0.05%	   0.07%	
- ashk	 chr1	cov15	  realigned	 h25	no_merging	no_downs	     0.697044	4957.49	 3455.59	 672420	 672632	0.25%	   0.28%	
- ashk	 chr1	cov15	        raw	 h25	no_merging	no_downs	     0.701036	4487.03	 3145.57	 561324	 561992	0.96%	   1.01%	
-  sim	 chr1	cov15	        raw	  hN	no_merging	     m25	     0.710641	4699.52	 3339.67	 810864	 813264	0.45%	   0.48%	
-  sim	 chr1	cov15	        raw	 h25	no_merging	no_downs	     0.715081	4070.03	 2910.40	 681164	 683748	0.45%	   0.48%	
- ashk	chr21	cov15	        raw	 h25	no_merging	no_downs	     0.715641	1969.06	 1409.14	1028028	1440112	0.82%	   0.99%	
- ashk	chr21	cov15	  realigned	  hN	    merged	     m25	     0.722332	 425.04	  307.02	 698496	 698560	0.56%	   0.56%	
- ashk	chr21	cov15	        raw	  hN	    merged	     m25	     0.730073	 389.29	  284.21	 393432	 393600	0.99%	   1.01%	
-  sim	chr21	cov15	        raw	  hN	    merged	     m25	     0.743137	 462.23	  343.50	 360096	 360292	0.12%	   0.11%	
-  sim	chr21	cov10	        raw	  hN	no_merging	     m25	     0.745213	 263.24	  196.17	 254596	 257116	0.49%	   0.49%	
-  sim	chr21	cov15	  realigned	  hN	    merged	     m25	     0.746756	 389.98	  291.22	 421112	 421168	0.00%	   0.02%	
-  sim	chr21	cov10	  realigned	  hN	no_merging	     m25	     0.749179	 298.38	  223.54	 399000	 399676	0.04%	   0.04%	
-  sim	chr21	cov10	  realigned	 h25	no_merging	no_downs	     0.752084	 286.67	  215.60	 419680	 420336	0.04%	   0.04%	
- ashk	chr21	cov10	  realigned	  hN	no_merging	     m25	     0.774282	 167.82	  129.94	 266804	 267480	0.67%	   0.67%	
-  sim	 chr1	cov15	  realigned	  hN	    merged	     m25	     0.789554	 525.17	  414.65	 223264	 223568	0.05%	   0.05%	
- ashk	chr21	cov10	        raw	  hN	no_merging	     m25	     0.790752	 155.27	  122.78	 186156	 187784	1.65%	   1.67%	
- ashk	 chr1	cov15	        raw	  hN	    merged	     m25	     0.795279	 790.93	  629.01	 185588	 185820	1.01%	   1.01%	
- ashk	chr21	cov10	  realigned	 h25	no_merging	no_downs	     0.800826	 154.89	  124.04	 266804	 267480	0.67%	   0.67%	
- ashk	chr21	cov10	        raw	 h25	no_merging	no_downs	     0.817867	 152.91	  125.06	 186156	 187788	1.65%	   1.67%	
-  sim	 chr1	cov15	        raw	  hN	    merged	     m25	     0.818716	 648.21	  530.70	 242004	 242604	0.47%	   0.47%	
- ashk	 chr1	cov15	  realigned	  hN	    merged	     m25	     0.820305	 575.03	  471.70	 223616	 223716	0.25%	   0.26%	
- ashk	 chr1	cov10	  realigned	  hN	no_merging	     m25	     0.826589	 326.45	  269.84	 367232	 367392	0.31%	   0.31%	
-  sim	chr21	cov10	        raw	 h25	no_merging	no_downs	     0.840845	 258.93	  217.72	 301044	 669508	0.49%	   0.54%	
- ashk	chr21	 cov5	  realigned	  hN	    merged	     m25	     0.846154	   0.65	    0.55	   2292	   2292	0.71%	   0.71%	
- ashk	 chr1	cov10	  realigned	 h25	no_merging	no_downs	     0.851487	 296.27	  252.27	 141172	 141288	0.31%	   0.31%	
-  sim	 chr1	cov10	        raw	  hN	no_merging	     m25	     0.876959	 225.86	  198.07	 312648	 313232	1.02%	   1.02%	
-  sim	chr21	cov10	        raw	  hN	    merged	     m25	     0.886453	  40.60	   35.99	  55500	  55956	0.54%	   0.54%	
-  sim	chr21	cov10	  realigned	  hN	    merged	     m25	     0.890098	  27.57	   24.54	  31020	  30804	0.04%	   0.04%	
-  sim	 chr1	cov10	  realigned	  hN	no_merging	     m25	      0.89204	 222.86	  198.80	 416064	 416172	0.08%	   0.08%	
- ashk	 chr1	cov10	        raw	 h25	no_merging	no_downs	     0.893302	 283.51	  253.26	 107136	 185912	1.64%	   1.65%	
-  sim	 chr1	cov10	  realigned	 h25	no_merging	no_downs	     0.897193	 208.74	  187.28	 195376	 195544	0.08%	   0.08%	
- ashk	 chr1	cov10	        raw	  hN	no_merging	     m25	     0.902719	 291.32	  262.98	 188192	 188792	1.64%	   1.65%	
- ashk	chr21	cov10	        raw	  hN	    merged	     m25	     0.909359	  23.72	   21.57	  30284	  30796	1.71%	   1.71%	
-  sim	 chr1	cov10	        raw	 h25	no_merging	no_downs	     0.928201	 204.18	  189.52	 161056	 161156	1.02%	   1.02%	
- ashk	 chr1	cov10	  realigned	  hN	    merged	     m25	     0.955991	  39.31	   37.58	  18188	  18204	0.31%	   0.31%	
- ashk	 chr1	cov10	        raw	  hN	    merged	     m25	     0.957435	  53.33	   51.06	  19036	  19036	1.65%	   1.65%	
- ashk	chr21	 cov5	        raw	  hN	    merged	     m25	     0.958333	   0.72	    0.69	   2492	   2488	3.66%	   3.66%	
-  sim	chr21	 cov5	  realigned	 h25	no_merging	no_downs	     0.963801	   2.21	    2.13	   4368	   4372	0.13%	   0.13%	
-  sim	 chr1	cov10	  realigned	  hN	    merged	     m25	     0.966721	  36.66	   35.44	  19064	  19140	0.08%	   0.08%	
- ashk	chr21	cov10	  realigned	  hN	    merged	     m25	      0.97026	  16.14	   15.66	  30128	  30288	0.67%	   0.67%	
-  sim	 chr1	cov10	        raw	  hN	    merged	     m25	     0.970719	  45.08	   43.76	  19168	  19164	1.01%	   1.01%	
- ashk	 chr1	 cov5	  realigned	  hN	    merged	     m25	     0.980296	   2.03	    1.99	   2444	   2460	0.65%	   0.65%	
- ashk	chr21	 cov5	        raw	  hN	no_merging	     m25	     0.985401	   1.37	    1.35	   3612	   3608	3.66%	   3.66%	
-  sim	 chr1	 cov5	        raw	  hN	    merged	     m25	       0.9875	   2.40	    2.37	   3248	   3240	3.51%	   3.51%	
-  sim	 chr1	 cov5	  realigned	  hN	    merged	     m25	     0.990909	   2.20	    2.18	   3476	   3476	0.46%	   0.46%	
-  sim	chr21	 cov5	        raw	 h25	no_merging	no_downs	     0.991071	   2.24	    2.22	   4368	   4368	2.00%	   2.00%	
- ashk	 chr1	 cov5	        raw	  hN	no_merging	     m25	     0.992925	   4.24	    4.21	   4444	   4448	4.48%	   4.48%	
-  sim	 chr1	 cov5	  realigned	 h25	no_merging	no_downs	     0.993644	   4.72	    4.69	  11176	  11172	0.46%	   0.46%	
-  sim	 chr1	 cov5	  realigned	  hN	no_merging	     m25	     0.993684	   4.75	    4.72	  11172	  11176	0.46%	   0.46%	
-  sim	 chr1	 cov5	        raw	 h25	no_merging	no_downs	     0.995708	   4.66	    4.64	  11384	  11388	3.51%	   3.51%	
-  sim	 chr1	 cov5	        raw	  hN	no_merging	     m25	     0.995893	   4.87	    4.85	  11388	  11388	3.51%	   3.51%	
- ashk	chr21	 cov5	  realigned	  hN	no_merging	     m25	            1	   1.33	    1.33	   3344	   3344	0.71%	   0.71%	
-  sim	chr21	 cov5	        raw	  hN	no_merging	     m25	      1.00467	   2.14	    2.15	   4368	   4368	2.00%	   2.00%	
- ashk	chr21	 cov5	        raw	 h25	no_merging	no_downs	      1.00704	   1.42	    1.43	   3604	   3604	3.66%	   3.66%	
-  sim	chr21	 cov5	  realigned	  hN	no_merging	     m25	      1.00939	   2.13	    2.15	   4364	   4368	0.13%	   0.13%	
-  sim	chr21	 cov5	        raw	  hN	    merged	     m25	      1.01163	   0.86	    0.87	   2520	   2524	2.02%	   2.02%	
- ashk	 chr1	 cov5	  realigned	  hN	no_merging	     m25	      1.01217	   4.11	    4.16	   4516	   4516	0.65%	   0.65%	
- ashk	 chr1	 cov5	        raw	 h25	no_merging	no_downs	      1.01489	   4.03	    4.09	   4448	   4444	4.48%	   4.48%	
- ashk	chr21	 cov5	  realigned	 h25	no_merging	no_downs	      1.02206	   1.36	    1.39	   3344	   3344	0.71%	   0.71%	
- ashk	 chr1	 cov5	        raw	  hN	    merged	     m25	      1.02283	   2.19	    2.24	   2452	   2448	4.48%	   4.48%	
- ashk	 chr1	 cov5	  realigned	 h25	no_merging	no_downs	       1.0229	   3.93	    4.02	   4516	   4512	0.65%	   0.65%	
-  sim	chr21	 cov5	  realigned	  hN	    merged	     m25	      1.04878	   0.82	    0.86	   2524	   2524	0.13%	   0.13%	
+#data	  chr	  cov	realignment	whds	     merge	     rds	bal.time/time	   time	bal.time	    mem	bal.mem	swer[%]	bal.swer[%]	swer	bal.swer	bal.swer/swer	
+ ashk	chr21	cov15	  realigned	 h25	no_merging	no_downs	     0.657873	2230.28	 1467.24	1283028	1283668	  0.54%	      0.52%	  46	      44	     0.956522	
+  sim	chr21	cov15	  realigned	 h25	no_merging	no_downs	     0.660001	2980.42	 1967.08	1373256	1373900	  0.00%	      0.01%	   0	       1	            1	
+ ashk	 chr1	cov15	        raw	  hN	no_merging	     m25	       0.6671	5929.98	 3955.89	 918868	 921404	  0.96%	      1.01%	 437	     458	      1.04805	
+  sim	chr21	cov15	        raw	 h25	no_merging	no_downs	     0.667363	2752.07	 1836.63	1035936	1039444	  0.12%	      0.15%	  10	      13	          1.3	
+ ashk	chr21	cov15	  realigned	  hN	no_merging	     m25	     0.673049	3667.37	 2468.32	2441208	2441588	  0.53%	      0.52%	  45	      44	     0.977778	
+ ashk	chr21	cov15	        raw	  hN	no_merging	     m25	        0.674	2877.67	 1939.55	1749720	1754300	  0.84%	      0.99%	  72	      85	      1.18056	
+  sim	chr21	cov15	  realigned	  hN	no_merging	     m25	     0.679155	5050.63	 3430.16	1528188	1529088	  0.00%	      0.01%	   0	       1	            1	
+ ashk	 chr1	cov15	  realigned	  hN	no_merging	     m25	     0.687118	7217.60	 4959.34	1336924	1338428	  0.25%	      0.28%	 115	     128	      1.11304	
+  sim	chr21	cov15	        raw	  hN	no_merging	     m25	     0.687233	3636.19	 2498.91	1527068	1527880	  0.13%	      0.19%	  11	      16	      1.45455	
+  sim	 chr1	cov15	  realigned	  hN	no_merging	     m25	     0.694557	5949.91	 4132.55	1482060	1482312	  0.05%	      0.07%	  23	      32	       1.3913	
+  sim	 chr1	cov15	  realigned	 h25	no_merging	no_downs	      0.69537	4436.79	 3085.21	 796032	 796208	  0.05%	      0.07%	  23	      32	       1.3913	
+ ashk	 chr1	cov15	  realigned	 h25	no_merging	no_downs	     0.697044	4957.49	 3455.59	 672420	 672632	  0.25%	      0.28%	 115	     129	      1.12174	
+ ashk	 chr1	cov15	        raw	 h25	no_merging	no_downs	     0.701036	4487.03	 3145.57	 561324	 561992	  0.96%	      1.01%	 439	     461	      1.05011	
+  sim	 chr1	cov15	        raw	  hN	no_merging	     m25	     0.710641	4699.52	 3339.67	 810864	 813264	  0.45%	      0.48%	 206	     219	      1.06311	
+  sim	 chr1	cov15	        raw	 h25	no_merging	no_downs	     0.715081	4070.03	 2910.40	 681164	 683748	  0.45%	      0.48%	 205	     220	      1.07317	
+ ashk	chr21	cov15	        raw	 h25	no_merging	no_downs	     0.715641	1969.06	 1409.14	1028028	1440112	  0.82%	      0.99%	  70	      85	      1.21429	
+ ashk	chr21	cov15	  realigned	  hN	    merged	     m25	     0.722332	 425.04	  307.02	 698496	 698560	  0.56%	      0.56%	  48	      48	            1	
+ ashk	chr21	cov15	        raw	  hN	    merged	     m25	     0.730073	 389.29	  284.21	 393432	 393600	  0.99%	      1.01%	  85	      86	      1.01176	
+  sim	chr21	cov15	        raw	  hN	    merged	     m25	     0.743137	 462.23	  343.50	 360096	 360292	  0.12%	      0.11%	  10	       9	          0.9	
+  sim	chr21	cov10	        raw	  hN	no_merging	     m25	     0.745213	 263.24	  196.17	 254596	 257116	  0.49%	      0.49%	  42	      42	            1	
+  sim	chr21	cov15	  realigned	  hN	    merged	     m25	     0.746756	 389.98	  291.22	 421112	 421168	  0.00%	      0.02%	   0	       2	            1	
+  sim	chr21	cov10	  realigned	  hN	no_merging	     m25	     0.749179	 298.38	  223.54	 399000	 399676	  0.04%	      0.04%	   3	       3	            1	
+  sim	chr21	cov10	  realigned	 h25	no_merging	no_downs	     0.752084	 286.67	  215.60	 419680	 420336	  0.04%	      0.04%	   3	       3	            1	
+ ashk	chr21	cov10	  realigned	  hN	no_merging	     m25	     0.774282	 167.82	  129.94	 266804	 267480	  0.67%	      0.67%	  57	      57	            1	
+  sim	 chr1	cov15	  realigned	  hN	    merged	     m25	     0.789554	 525.17	  414.65	 223264	 223568	  0.05%	      0.05%	  23	      24	      1.04348	
+ ashk	chr21	cov10	        raw	  hN	no_merging	     m25	     0.790752	 155.27	  122.78	 186156	 187784	  1.65%	      1.67%	 141	     142	      1.00709	
+ ashk	 chr1	cov15	        raw	  hN	    merged	     m25	     0.795279	 790.93	  629.01	 185588	 185820	  1.01%	      1.01%	 460	     462	      1.00435	
+ ashk	chr21	cov10	  realigned	 h25	no_merging	no_downs	     0.800826	 154.89	  124.04	 266804	 267480	  0.67%	      0.67%	  57	      57	            1	
+ ashk	chr21	cov10	        raw	 h25	no_merging	no_downs	     0.817867	 152.91	  125.06	 186156	 187788	  1.65%	      1.67%	 141	     142	      1.00709	
+  sim	 chr1	cov15	        raw	  hN	    merged	     m25	     0.818716	 648.21	  530.70	 242004	 242604	  0.47%	      0.47%	 214	     216	      1.00935	
+ ashk	 chr1	cov15	  realigned	  hN	    merged	     m25	     0.820305	 575.03	  471.70	 223616	 223716	  0.25%	      0.26%	 116	     118	      1.01724	
+ ashk	 chr1	cov10	  realigned	  hN	no_merging	     m25	     0.826589	 326.45	  269.84	 367232	 367392	  0.31%	      0.31%	 141	     142	      1.00709	
+  sim	chr21	cov10	        raw	 h25	no_merging	no_downs	     0.840845	 258.93	  217.72	 301044	 669508	  0.49%	      0.54%	  42	      46	      1.09524	
+ ashk	chr21	 cov5	  realigned	  hN	    merged	     m25	     0.846154	   0.65	    0.55	   2292	   2292	  0.71%	      0.71%	  59	      59	            1	
+ ashk	 chr1	cov10	  realigned	 h25	no_merging	no_downs	     0.851487	 296.27	  252.27	 141172	 141288	  0.31%	      0.31%	 141	     142	      1.00709	
+  sim	 chr1	cov10	        raw	  hN	no_merging	     m25	     0.876959	 225.86	  198.07	 312648	 313232	  1.02%	      1.02%	 464	     464	            1	
+  sim	chr21	cov10	        raw	  hN	    merged	     m25	     0.886453	  40.60	   35.99	  55500	  55956	  0.54%	      0.54%	  46	      46	            1	
+  sim	chr21	cov10	  realigned	  hN	    merged	     m25	     0.890098	  27.57	   24.54	  31020	  30804	  0.04%	      0.04%	   3	       3	            1	
+  sim	 chr1	cov10	  realigned	  hN	no_merging	     m25	      0.89204	 222.86	  198.80	 416064	 416172	  0.08%	      0.08%	  37	      37	            1	
+ ashk	 chr1	cov10	        raw	 h25	no_merging	no_downs	     0.893302	 283.51	  253.26	 107136	 185912	  1.64%	      1.65%	 741	     745	       1.0054	
+  sim	 chr1	cov10	  realigned	 h25	no_merging	no_downs	     0.897193	 208.74	  187.28	 195376	 195544	  0.08%	      0.08%	  37	      37	            1	
+ ashk	 chr1	cov10	        raw	  hN	no_merging	     m25	     0.902719	 291.32	  262.98	 188192	 188792	  1.64%	      1.65%	 741	     745	       1.0054	
+ ashk	chr21	cov10	        raw	  hN	    merged	     m25	     0.909359	  23.72	   21.57	  30284	  30796	  1.71%	      1.71%	 146	     146	            1	
+  sim	 chr1	cov10	        raw	 h25	no_merging	no_downs	     0.928201	 204.18	  189.52	 161056	 161156	  1.02%	      1.02%	 464	     464	            1	
+ ashk	 chr1	cov10	  realigned	  hN	    merged	     m25	     0.955991	  39.31	   37.58	  18188	  18204	  0.31%	      0.31%	 141	     141	            1	
+ ashk	 chr1	cov10	        raw	  hN	    merged	     m25	     0.957435	  53.33	   51.06	  19036	  19036	  1.65%	      1.65%	 745	     745	            1	
+ ashk	chr21	 cov5	        raw	  hN	    merged	     m25	     0.958333	   0.72	    0.69	   2492	   2488	  3.66%	      3.66%	 305	     305	            1	
+  sim	chr21	 cov5	  realigned	 h25	no_merging	no_downs	     0.963801	   2.21	    2.13	   4368	   4372	  0.13%	      0.13%	  11	      11	            1	
+  sim	 chr1	cov10	  realigned	  hN	    merged	     m25	     0.966721	  36.66	   35.44	  19064	  19140	  0.08%	      0.08%	  37	      37	            1	
+ ashk	chr21	cov10	  realigned	  hN	    merged	     m25	      0.97026	  16.14	   15.66	  30128	  30288	  0.67%	      0.67%	  57	      57	            1	
+  sim	 chr1	cov10	        raw	  hN	    merged	     m25	     0.970719	  45.08	   43.76	  19168	  19164	  1.01%	      1.01%	 457	     457	            1	
+ ashk	 chr1	 cov5	  realigned	  hN	    merged	     m25	     0.980296	   2.03	    1.99	   2444	   2460	  0.65%	      0.65%	 282	     282	            1	
+ ashk	chr21	 cov5	        raw	  hN	no_merging	     m25	     0.985401	   1.37	    1.35	   3612	   3608	  3.66%	      3.66%	 305	     305	            1	
+  sim	 chr1	 cov5	        raw	  hN	    merged	     m25	       0.9875	   2.40	    2.37	   3248	   3240	  3.51%	      3.51%	1549	    1549	            1	
+  sim	 chr1	 cov5	  realigned	  hN	    merged	     m25	     0.990909	   2.20	    2.18	   3476	   3476	  0.46%	      0.46%	 201	     201	            1	
+  sim	chr21	 cov5	        raw	 h25	no_merging	no_downs	     0.991071	   2.24	    2.22	   4368	   4368	  2.00%	      2.00%	 168	     168	            1	
+ ashk	 chr1	 cov5	        raw	  hN	no_merging	     m25	     0.992925	   4.24	    4.21	   4444	   4448	  4.48%	      4.48%	1961	    1961	            1	
+  sim	 chr1	 cov5	  realigned	 h25	no_merging	no_downs	     0.993644	   4.72	    4.69	  11176	  11172	  0.46%	      0.46%	 201	     201	            1	
+  sim	 chr1	 cov5	  realigned	  hN	no_merging	     m25	     0.993684	   4.75	    4.72	  11172	  11176	  0.46%	      0.46%	 201	     201	            1	
+  sim	 chr1	 cov5	        raw	 h25	no_merging	no_downs	     0.995708	   4.66	    4.64	  11384	  11388	  3.51%	      3.51%	1549	    1549	            1	
+  sim	 chr1	 cov5	        raw	  hN	no_merging	     m25	     0.995893	   4.87	    4.85	  11388	  11388	  3.51%	      3.51%	1549	    1549	            1	
+ ashk	chr21	 cov5	  realigned	  hN	no_merging	     m25	            1	   1.33	    1.33	   3344	   3344	  0.71%	      0.71%	  59	      59	            1	
+  sim	chr21	 cov5	        raw	  hN	no_merging	     m25	      1.00467	   2.14	    2.15	   4368	   4368	  2.00%	      2.00%	 168	     168	            1	
+ ashk	chr21	 cov5	        raw	 h25	no_merging	no_downs	      1.00704	   1.42	    1.43	   3604	   3604	  3.66%	      3.66%	 305	     305	            1	
+  sim	chr21	 cov5	  realigned	  hN	no_merging	     m25	      1.00939	   2.13	    2.15	   4364	   4368	  0.13%	      0.13%	  11	      11	            1	
+  sim	chr21	 cov5	        raw	  hN	    merged	     m25	      1.01163	   0.86	    0.87	   2520	   2524	  2.02%	      2.02%	 170	     170	            1	
+ ashk	 chr1	 cov5	  realigned	  hN	no_merging	     m25	      1.01217	   4.11	    4.16	   4516	   4516	  0.65%	      0.65%	 282	     282	            1	
+ ashk	 chr1	 cov5	        raw	 h25	no_merging	no_downs	      1.01489	   4.03	    4.09	   4448	   4444	  4.48%	      4.48%	1961	    1961	            1	
+ ashk	chr21	 cov5	  realigned	 h25	no_merging	no_downs	      1.02206	   1.36	    1.39	   3344	   3344	  0.71%	      0.71%	  59	      59	            1	
+ ashk	 chr1	 cov5	        raw	  hN	    merged	     m25	      1.02283	   2.19	    2.24	   2452	   2448	  4.48%	      4.48%	1962	    1962	            1	
+ ashk	 chr1	 cov5	  realigned	 h25	no_merging	no_downs	       1.0229	   3.93	    4.02	   4516	   4512	  0.65%	      0.65%	 282	     282	            1	
+  sim	chr21	 cov5	  realigned	  hN	    merged	     m25	      1.04878	   0.82	    0.86	   2524	   2524	  0.13%	      0.13%	  11	      11	            1	
