@@ -77,7 +77,7 @@ rule master :
 
 		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
 			pattern = sliceof(
-				datasubset(chromosomes, [5, 10, 15]),
+				datasubset(chromosomes, [5, 10, 15, 20]),
 				[25]),
 			bal = ['bN_0', 'b20_45'],
 			ext = exts)
