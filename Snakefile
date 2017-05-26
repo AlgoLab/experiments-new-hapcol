@@ -80,7 +80,7 @@ rule master :
 				datasubset(chromosomes, [5, 10, 15]),
 				[25]),
 			bal = ['bN_0', 'b20_45'],
-			ext = ['hap'])
+			ext = exts)
 
 #
 # run whatshap on a bam / vcf pair
@@ -204,6 +204,8 @@ rule phase_vcf :
 
 	output : '{dir}/' + full_pattern + '.phased.vcf'
 
+	log : '{dir}/' + full_pattern + '.phased.vcf.log'
+
 	message : '''
 
    adding phase information from {input.hap}
@@ -214,7 +216,7 @@ rule phase_vcf :
 	shell : '''
 
    python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
-      > {output} '''
+      > {output} 2> {log} '''
 
 #
 # compute MEC score of phased vcf wrt instance, as a wif file
