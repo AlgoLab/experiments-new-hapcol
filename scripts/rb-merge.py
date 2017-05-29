@@ -50,6 +50,8 @@ def main():
                         required = True, dest = 'out_file')
     parser.add_argument('-g', '--graph', help = "Output graph CCS file.",
                         required = False, dest = 'graph_file')
+    parser.add_argument('-r', '--ranking', help = "Output ranking of each line of WIF merged file.",
+                        required = False, dest = 'ranking_file')
     parser.add_argument('-t', '--thr', required = False, dest = 'thr',
                         type = int, default = 1000000,
                         help = "Threshold of the ratio between the probabilities that the two reads come from the same side or from different sides.")
@@ -232,6 +234,7 @@ def main():
     logging.info("Started Merging Reads...")
     superreads = {} # superreads given by the clusters (if clustering)
     rep = {} # cluster representative of a read in a cluster
+    ranking = {} # ranking of each rep (number of reads it represents)
     
     if(args.graph_file):
         logging.info("Printing graph in %s file", args.graph_file)
@@ -242,6 +245,7 @@ def main():
                 graph_out.write(' '.join([str(id) for id in cc]) + "\n")
             r = min(cc)
             superreads[r] = {}
+            ranking[r] = len(cc)
             for id in cc:
                 rep[id] = r
             logging.debug("rep: %s - cc: %s", r, ",".join([str(id) for id in cc]))
@@ -257,10 +261,12 @@ def main():
                     superreads[r][site] = [0,0]
                 superreads[r][site][zyg] += qual
 
+    ranking_out = open(args.ranking_file, 'w')
     with open(args.out_file, "w") as out:
-        for id in orig_reads:
+        for id in sorted(orig_reads):
             if id in rep:
                 if id == rep[id]:
+                    ranking_out.write('{}\n'.format(ranking[id]))
                     for site in sorted(superreads[id]):
                         z = superreads[id][site]
                         if z[0] >= z[1]:
@@ -279,11 +285,13 @@ def main():
                                                                   '']))
                     out.write("# X : X\n")
             else:
+                ranking_out.write('1\n')
                 for tok in orig_reads[id]:
                     out.write(" ".join(str(t) for t in tok) + " : ")
                 out.write("# X : X\n")
 
 
+    ranking_out.close()
     logging.info("Finished Merging Reads.")
     logging.info("Program Finshed")
 
