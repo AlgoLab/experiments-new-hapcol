@@ -190,7 +190,8 @@ rule downsample :
 	input :
 		script = 'scripts/wiftools.py',
 		wif = '{path}.wif',
-		shuf = '{path}.wif.lines.shuf{seed}'
+		shuf = '{path}.wif.lines.shuf{seed}',
+		ranking = '{path}.wif.ranking'
 
 	output : '{path}.wif.sample_s{seed,[0-9]+}_m{max,[0-9]+}'
 
@@ -206,8 +207,8 @@ rule downsample :
 	shell : '''
 
    {time} -v -o {log.time} \
-      python {input.script} -s {wildcards.max} {input.shuf} {input.wif} \
-         > {output} 2> {log.log} '''
+      python {input.script} -s {wildcards.max} {input.shuf} {input.ranking} \
+         {input.wif} > {output} 2> {log.log} '''
 
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
 rule permute_lines :
@@ -240,7 +241,9 @@ rule merge_wif :
 		t = lambda wildcards : 10 ** int(wildcards.thresh),
 		n = lambda wildcards : 10 ** int(wildcards.neg)
 
-	output : '{path}.merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}.wif'
+	output :
+		wif = '{path}.merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}.wif',
+		ranking = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.ranking'
 
 	log :
 		log = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.log',
@@ -263,15 +266,23 @@ rule merge_wif :
 
    {time} -v -o {log.time} \
       python {input.script} -v -e {params.e} -m {params.m} \
-         -t {params.t} -n {params.n} -w {input.wif} -o {output} \
-         -g {log.graph} > {log.log} 2>&1 '''
+         -t {params.t} -n {params.n} -w {input.wif} -o {output.wif} \
+         -g {log.graph} -r {output.ranking} > {log.log} 2>&1 '''
 
 # dummy rule to ensure the naming is consistent
 rule no_merging :
 	input : '{path}.wif'
-	output : '{path}.no_merging.wif'
+
+	output :
+		wif = '{path}.no_merging.wif',
+		ranking = '{path}.no_merging.wif.ranking'
+
 	message : 'perform no merging'
-	shell : 'cp {input} {output}'
+
+	shell : '''
+
+   cp {input} {output.wif}
+   awk '{{print "1"}}' {input} > {output.ranking} '''
 
 #
 # obtain properties of a wif file
