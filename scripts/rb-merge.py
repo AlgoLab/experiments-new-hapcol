@@ -19,27 +19,6 @@ def eval_overlap(n1, n2):
                 mismatch += 1
     return (match, mismatch)
 
-# Compute the consensus of a set of reads
-def merge_reads(reads):
-    count_alleles = {}
-    for read in reads:
-        for idx, allele in enumerate(read['sites']):
-            if allele in ['A', 'C', 'G', 'T']:
-                id = read['begin'] + idx
-                if id not in count_alleles:
-                    count_alleles[id] = {'A': 0, 'C': 0, 'G': 0, 'T': 0}
-                count_alleles[id][allele] += 1
-    consensus = []
-    for idx, alleles in count_alleles.items():
-        consensus.append(max(iter(count_alleles[idx].keys()),
-                             key=(lambda k: count_alleles[idx][k])))
-
-    new_read = {'begin': min([read['begin'] for read in reads]),
-                'end': max([read['end'] for read in reads]),
-                'sites': consensus}
-    return new_read
-
-
 def main():
     parser = argparse.ArgumentParser(prog = "build-red-blue-graph",
                                      description = "construct red-blu graph from WIF.",
