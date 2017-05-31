@@ -133,9 +133,9 @@ def main():
                             str(merge_info["mem"])
                 downs = "no,NA,NA,NA,NA"
                 if(ds[8] != "no_downs"):
-                    dfile = args.wif_dir + ".".join(ds[0:7])
-                    if(ds[7] != "no_merging"):
-                        dfile += "." + ds[7]
+                    dfile = args.wif_dir + ".".join(ds[0:8])
+                    # if(ds[7] != "no_merging"):
+                    #     dfile += "." + ds[7]
                     dfile += ".wif.sample_" + "_".join(ds[8].split('_')[1:]) + ".time"
                     if not os.path.isfile(dfile):
                         logging.error("File not found: %s", dfile)
