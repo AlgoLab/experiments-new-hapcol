@@ -23,6 +23,7 @@ def getScore(log_file):
                 cleanline = line.split(" | ")[1]
                 if cleanline.startswith("OPTIMUM:"):
                     return int(cleanline.split(":")[1])
+
 def getMEC(mec_file):
     with open(mec_file, 'r') as mf:
         line = mf.readline().rstrip()
@@ -96,11 +97,17 @@ def main():
         num_inck = 0
         logging.info("Parsing Inck files")
         for df in os.listdir(args.inck_dir):
-            if df.endswith(".diff"):
-                num_inck += 1
-                out.write("HapChat,")
+            if df.endswith(".bN_0.diff"):
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
+                # filter
+                if ds[6] not in ["hN", "h15", "h20"]:
+                    continue
+                if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"]:
+                    continue
+
+                out.write("HapChat,")                
+                num_inck += 1
                 qual = getQUAL(args.inck_dir + df)
                 tfile = args.inck_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
