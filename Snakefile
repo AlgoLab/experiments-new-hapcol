@@ -64,15 +64,18 @@ rule master :
 			pattern = whatshap(datasets, [15, 20]),
 			ext = exts),
 
+		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
+			pattern = sliceof(datasets, [15, 20]),
+			ea = ea_vals,
+			ext = exts),
+
+# coming up ..
+rule next :
+	input :
 		expand('output/core_wh/{pattern}.{ext}',
 			pattern = whatshap(
 				datasubset([21], [5, 10]),
 				[15, 20]),
-			ext = exts),
-
-		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
-			pattern = sliceof(datasets, [15, 20]),
-			ea = ea_vals,
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
