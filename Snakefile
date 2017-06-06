@@ -36,16 +36,24 @@ def whatshap(datasets_, maxs_) :
 		for dataset_ in datasets_
 		for h_ in maxs_]
 
+# partial paramerization of a merging (threshold and neg. threshold)
+def merging(thrs_, negthrs_) :
+	return ['.merged_e{}_m{}_t{}_n{}'.format(err_, max_, thresh_, neg_)
+		for err_ in error_rates
+		for max_ in max_errs
+		for thresh_ in thrs_
+		for neg_ in negthrs_] + ['.no_merging']
+
 # datasets postprocessed to a specified list of max cov
-def postproc(datasets_, maxs_) :
+def postproc(datasets_, thrs_, negthrs_, maxs_) :
 	return ['{}.hN{}{}.no_merging'.format(dataset_, merging_, downsampling_)
 		for dataset_ in datasets_
-		for merging_ in mergings
+		for merging_ in merging(thrs_, negthrs_)
 		for downsampling_ in downs(maxs_)]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
-def sliceof(datasets_, maxs_) :
-	return whatshap(datasets_, maxs_) + postproc(datasets_, maxs_)
+def sliceof(datasets_, thrs_, negthrs_, maxs_) :
+	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_)
 
 # define a subset of the datasets in terms of chromosomes and coverages
 def datasubset(chromosomes_, coverages_) :
@@ -65,7 +73,7 @@ rule master :
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
-			pattern = sliceof(datasets, [15, 20]),
+			pattern = sliceof(datasets, [6], [3], [15, 20]),
 			ea = ea_vals,
 			ext = exts),
 
@@ -81,7 +89,7 @@ rule next :
 		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
 			pattern = sliceof(
 				datasubset(chromosomes, [5, 10, 15, 20]),
-				[25]),
+				[6], [3], [25]),
 			bal = ['bN_0', 'b20_45'],
 			ext = exts)
 
