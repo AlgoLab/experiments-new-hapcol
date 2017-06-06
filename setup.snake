@@ -16,7 +16,7 @@ data = ['ashk', 'sim']
 platforms = ['pacbio']
 individuals = ['child'] # mother, father, ..
 chromosomes = [1, 21]
-coverages = [5, 10, 15, 20, 25, 30, 'all']
+coverages = [15, 20, 25, 30]
 high_coverages = [40, 50, 60]
 
 # whatshap processing
