@@ -56,12 +56,12 @@ def sliceof(datasets_, thrs_, negthrs_, maxs_) :
 	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_)
 
 # define a subset of the datasets in terms of chromosomes and coverages
-def datasubset(chromosomes_, coverages_) :
+def datasubset(chromosomes_, coverages_, modes_) :
 	return ['{}.pacbio.child.chr{}.cov{}.{}'.format(data_, chromosome_, coverage_, mode_)
 		for data_ in data
 		for chromosome_ in chromosomes_
 		for coverage_ in coverages_
-		for mode_ in realignment]
+		for mode_ in modes_]
 
 #
 # master rule
@@ -82,13 +82,16 @@ rule next :
 	input :
 		expand('output/core_wh/{pattern}.{ext}',
 			pattern = whatshap(
-				datasubset([21], [5, 10]),
+				datasubset([21], [5, 10], realignment),
 				[15, 20]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
 			pattern = sliceof(
-				datasubset(chromosomes, [5, 10, 15, 20]),
+				datasubset(
+                                        chromosomes,
+					[5, 10, 15, 20],
+					realignment),
 				[6], [3], [25]),
 			bal = ['bN_0', 'b20_45'],
 			ext = exts)
