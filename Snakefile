@@ -18,7 +18,7 @@ ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
 # extensions desired
-exts = ['diff', 'mec']
+exts = ['diff', 'mec', 'sites']
 
 #
 # useful list-defining functions
@@ -187,9 +187,8 @@ rule compare_vcfs :
 		true = 'vcf/' + vcf_pattern + '.phased.vcf',
 		vcf = '{dir}/' + full_pattern + '.phased.vcf'
 
-	output : '{dir}/' + full_pattern + '.diff'
-
-	log :
+	output :
+		diff = '{dir}/' + full_pattern + '.diff',
 		bed = '{dir}/' + full_pattern + '.bed'
 
 	message : '''
@@ -202,8 +201,8 @@ rule compare_vcfs :
 
 	shell : '''
 
-   {compare} --switch-error-bed {log.bed} \
-      {input.true} {input.vcf} > {output} '''
+   {compare} --switch-error-bed {output.bed} \
+      {input.true} {input.vcf} > {output.diff} '''
 
 # convert old-skool hap format to a phased vcf
 rule phase_vcf :
@@ -251,3 +250,20 @@ rule mec_score :
 	shell : '''
 
    python {input.script} -v {input.vcf} {input.wif} > {output} '''
+
+#
+# get sitewise details of input/run, e.g., coverage, switch error, etc.
+#----------------------------------------------------------------------
+rule sitewise_details :
+	input :
+		script = 'scripts/sitesinfo.py',
+		sites = 'wif/' + post_pattern + '.wif.info_/sites_',
+		swerrs = '{dir}/' + full_pattern + '.bed'
+
+	output : '{dir}/' + full_pattern + '.sites'
+
+	message : 'obtain sitewise details {output}'
+
+	shell : '''
+
+   python {input.script} -s {input.swerrs} {input.sites} > {output} '''

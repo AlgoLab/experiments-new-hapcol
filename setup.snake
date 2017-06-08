@@ -281,6 +281,12 @@ rule wif_info :
 		script = 'scripts/wiftools.py',
 		wif = '{path}.wif'
 
-	output : '{path}.wif.info_/block_sites_'
+	output :
+		expand('{{path}}.wif.info_/{file}',
+			file = ['block_reads_', 'block_sites_',
+				'site_alleles_', 'site_zygosity_',
+				'blocks_', 'reads_',
+				'sites_', 'stats_'])
+
 	message : 'obtaining info for {input.wif}'
 	shell : 'python {input.script} -i {input.wif}'
