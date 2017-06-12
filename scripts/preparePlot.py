@@ -58,6 +58,9 @@ def getTimeMem(log_file):
         return info
 
 def main():
+    coverages = ['cov{}'.format(c) for c in '15 20 25 30 40 50 60'.split()]
+    mergings = ['merged_e15_m25_t{}_n3'.format(t) for t in '6 17'.split()]
+
     parser = argparse.ArgumentParser(prog = "preparePlot",
                                      description = "Prepare Hplotyping data.",
                                      formatter_class = argparse.ArgumentDefaultsHelpFormatter)
@@ -101,7 +104,12 @@ def main():
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
+                print(ds)
+                if ds[4] not in coverages :
+                    continue
                 if ds[6] not in ["hN", "h15", "h20"]:
+                    continue
+                if ds[7] not in mergings + ['no_merging'] :
                     continue
                 if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"]:
                     continue
@@ -180,10 +188,14 @@ def main():
         logging.info("Parsing WhatsHap files")
         for df in os.listdir(args.wh_dir):
             if df.endswith(".diff"):
-                num_wh += 1
-                out.write("WhatsHap,")
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
+                # filter
+                if ds[4] not in coverages :
+                    continue
+
+                out.write("WhatsHap,")
+                num_wh += 1
                 qual = getQUAL(args.wh_dir + df)
                 tfile = args.wh_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
