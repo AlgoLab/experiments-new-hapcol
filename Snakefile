@@ -73,7 +73,7 @@ rule master :
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
-			pattern = sliceof(datasets, [6], [3], [15, 20]),
+			pattern = sliceof(datasets, [6, 17], [3], [15, 20]),
 			ea = ea_vals,
 			ext = exts),
 
