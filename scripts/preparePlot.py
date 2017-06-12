@@ -104,7 +104,6 @@ def main():
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
-                print(ds)
                 if ds[4] not in coverages :
                     continue
                 if ds[6] not in ["hN", "h15", "h20"]:
