@@ -139,7 +139,7 @@ for datum in data :
                     for alpha in alphas[1:] :
                         for beta in betas[1:] :
                             assert t_hc[whdown][no_merging][no_downs][alpha][beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
-                        hccount += 1
+                            hccount += 1
 
                 for merging in mergings :
                     for rnddown in rnddowns[1:] :
@@ -148,7 +148,7 @@ for datum in data :
                         for alpha in alphas[1:] :
                             for beta in betas[1:] :
                                 assert t_m[alpha][beta], 'no record for HapChat, dataset: {}, merge: {}, random downsample: {}, Alpha: {}'.format(dataset, merging, rnddown, alpha)
-                            hccount += 1
+                                hccount += 1
 
 print('number of WhatsHap records:', whcount, file = sys.stderr)
 print('number of HapChat records:', hccount, file = sys.stderr)
