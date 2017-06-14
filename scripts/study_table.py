@@ -153,5 +153,42 @@ for datum in data :
 print('number of WhatsHap records:', whcount, file = sys.stderr)
 print('number of HapChat records:', hccount, file = sys.stderr)
 
+# aux functions
+#----------------------------------------------------------------------
+def msg(line) :
+    print(line.strip(), file = sys.stderr)
+
+# compare swerr of different downsamplings for hapchat
+#----------------------------------------------------------------------
+def swerr_downsamplings(mode, maxcov, alpha) :
+
+    downs = 'yes 1 {}'.format(maxcov)
+    beta = 'N 0'
+    swerr = 'SwErrRatePerc'
+
+    msg('')
+    msg('HapChat')
+    msg(mode)
+    msg('final cov = {}'.format(maxcov))
+    msg('alpha = {}'.format(alpha))
+    msg(70*'-')
+
+    print('#dataset whdowns merge-t6 merge-t17 rnddowns')
+    for datum in data :
+        for chr in chrs :
+            for cov in meancovs :
+                t_data = table['HapChat'][datum][chr][cov][mode]
+
+                print('{}.{}.cov{}'.format(datum,chr,cov),
+                      t_data[str(maxcov)][no_merging][no_downs][alpha][beta][swerr],
+                      t_data['N'][mergings[1]][downs][alpha][beta][swerr],
+                      t_data['N'][mergings[2]][downs][alpha][beta][swerr],
+                      t_data['N'][no_merging][downs][alpha][beta][swerr])
+
 # add your own stuff here ...
 #----------------------------------------------------------------------
+
+mode = 'realigned'
+maxcov = 20
+alpha = '0.0001'
+swerr_downsamplings(mode, maxcov, alpha)
