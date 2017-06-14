@@ -158,13 +158,29 @@ print('number of HapChat records:', hccount, file = sys.stderr)
 def msg(line) :
     print(line.strip(), file = sys.stderr)
 
-# compare swerr of different downsamplings for hapchat
-#----------------------------------------------------------------------
-def swerr_downsamplings(mode, maxcov, alpha) :
+pipelines = 'whdowns merge-t6 merge-t17 rnddowns'.split()
+    
+pipeline_name = {'whdowns' : 'whatshap downsampling',
+                  'merge-t6' : 'merging threshold 6',
+                  'merge-t17' : 'merging threshold 17',
+                  'rnddowns' : 'random downsampling'}
 
-    downs = 'yes 1 {}'.format(maxcov)
-    beta = 'N 0'
-    swerr = 'SwErrRatePerc'
+def pipeline_record(pipeline, t_data, maxcov, alpha) :
+
+    if pipeline == 'whdowns' :
+        return t_data[str(maxcov)][no_merging][no_downs][alpha]['N 0']
+    elif pipeline == 'merge-t6' :
+        return t_data['N'][mergings[1]]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+    elif pipeline == 'merge-t17' :
+        return t_data['N'][mergings[2]]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+    elif pipeline == 'rnddowns' :
+        return t_data['N'][no_merging]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+    else :
+        assert False, 'unknown pipeline: '+pipeline
+    
+# compare the different pipelines for hapchat
+#----------------------------------------------------------------------
+def compare_pipelines(mode, maxcov, alpha) :
 
     msg('')
     msg('HapChat')
@@ -173,17 +189,17 @@ def swerr_downsamplings(mode, maxcov, alpha) :
     msg('alpha = {}'.format(alpha))
     msg(70*'-')
 
-    print('#dataset whdowns merge-t6 merge-t17 rnddowns')
+    print('#dataset', ' '.join(pipelines))
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
-                t_data = table['HapChat'][datum][chr][cov][mode]
 
-                print('{}.{}.cov{}'.format(datum,chr,cov),
-                      t_data[str(maxcov)][no_merging][no_downs][alpha][beta][swerr],
-                      t_data['N'][mergings[1]][downs][alpha][beta][swerr],
-                      t_data['N'][mergings[2]][downs][alpha][beta][swerr],
-                      t_data['N'][no_merging][downs][alpha][beta][swerr])
+                t_data = table['HapChat'][datum][chr][cov][mode]
+                print('{}.{}.cov{}'.format(datum,chr,cov), end = ' ')
+                for pipeline in pipelines :
+                    record = pipeline_record(pipeline, t_data, maxcov, alpha)
+                    print(record['SwErrRatePerc'], end = ' ')
+                print()
 
 # add your own stuff here ...
 #----------------------------------------------------------------------
@@ -191,4 +207,4 @@ def swerr_downsamplings(mode, maxcov, alpha) :
 mode = 'realigned'
 maxcov = 20
 alpha = '0.0001'
-swerr_downsamplings(mode, maxcov, alpha)
+compare_pipelines(mode, maxcov, alpha)
