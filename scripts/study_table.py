@@ -186,7 +186,10 @@ def pipeline_record(pipeline, t_data, maxcov, alpha) :
         return t_data['N'][no_merging]['yes 1 {}'.format(maxcov)][alpha]['N 0']
     else :
         assert False, 'unknown pipeline: '+pipeline
-    
+
+def whatshap_record(datum, chr, cov, mode, maxcov) :
+    return table['WhatsHap'][datum][chr][cov][mode][str(maxcov)][no_merging][no_downs]['NA'][no_beta]
+
 # compare the different pipelines for hapchat
 #----------------------------------------------------------------------
 def compare_pipelines(mode, maxcov, alpha) :
@@ -231,12 +234,36 @@ def vary_alpha(pipeline, mode, maxcov) :
                     print(record['SwErrRatePerc'], end = ' ')
                 print()
 
+# how does hapchat compare to whatshap
+#----------------------------------------------------------------------
+def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
+
+    head()
+    msg('HapChat vs. WhatsHap')
+    modemax(mode, maxcov)
+    msg('HapChat pipeline = {}'.format(pipeline_name[pipeline]))
+    msg('HapChat alpha = {}'.format(alpha))
+    tail()
+
+    print('#dataset HapChat WhatsHap')
+    for datum in data :
+        for chr in chrs :
+            for cov in meancovs :
+
+                t_data = table['HapChat'][datum][chr][cov][mode]
+                record = pipeline_record(pipeline, t_data, maxcov, alpha)
+                wh_record = whatshap_record(datum,chr,cov,mode,maxcov)
+                print('{}.{}.cov{}'.format(datum,chr,cov),
+                      record['SwErrRatePerc'],
+                      wh_record['SwErrRatePerc'])
+
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
 mode = 'realigned'
 maxcov = 20
-#alpha = '0.0001'
-#compare_pipelines(mode, maxcov, alpha)
+alpha = '0.1'
 
-vary_alpha(pipelines[0], mode, maxcov)
+#compare_pipelines(mode, maxcov, alpha)
+#vary_alpha(pipelines[0], mode, maxcov)
+hapchat_whatshap('merge-t17', mode, maxcov, alpha)
