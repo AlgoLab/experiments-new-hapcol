@@ -183,7 +183,7 @@ def pipeline_record(pipeline, t_data, maxcov, alpha) :
 def compare_pipelines(mode, maxcov, alpha) :
 
     msg('')
-    msg('HapChat')
+    msg('HapChat -- switch error for each pipeline')
     msg(mode)
     msg('final cov = {}'.format(maxcov))
     msg('alpha = {}'.format(alpha))
@@ -201,10 +201,35 @@ def compare_pipelines(mode, maxcov, alpha) :
                     print(record['SwErrRatePerc'], end = ' ')
                 print()
 
+# how does a hapchat pipeline vary with alpha
+#----------------------------------------------------------------------
+def vary_alpha(pipeline, mode, maxcov) :
+
+    msg('')
+    msg('HapChat -- switch error as a function of alpha')
+    msg(mode)
+    msg('final cov = {}'.format(maxcov))
+    msg('pipeline = {}'.format(pipeline))
+    msg(70*'-')
+
+    print('#dataset', ' '.join(alphas[1:]))
+    for datum in data :
+        for chr in chrs :
+            for cov in meancovs :
+
+                t_data = table['HapChat'][datum][chr][cov][mode]
+                print('{}.{}.cov{}'.format(datum,chr,cov), end = ' ')
+                for alpha in alphas[1:] :
+                    record = pipeline_record(pipeline, t_data, maxcov, alpha)
+                    print(record['SwErrRatePerc'], end = ' ')
+                print()
+
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
 mode = 'realigned'
 maxcov = 20
-alpha = '0.0001'
-compare_pipelines(mode, maxcov, alpha)
+#alpha = '0.0001'
+#compare_pipelines(mode, maxcov, alpha)
+
+vary_alpha(pipelines[0], mode, maxcov)
