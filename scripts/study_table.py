@@ -156,18 +156,18 @@ print('number of HapChat records:', hccount, file = sys.stderr)
 # aux functions
 #----------------------------------------------------------------------
 def msg(line) :
-    print(line.strip(), file = sys.stderr)
+    print(line, file = sys.stderr)
 
 def head() :
     msg('')
 
 def tail() :
-    msg(70*'-')
+    msg(' '+70*'-')
     msg('')
 
 def modemax(mode, maxcov) :
-    msg(mode)
-    msg('final cov = {}'.format(maxcov))
+    msg(' '+mode)
+    msg(' final cov = {}'.format(maxcov))
 
 def emph(string) :
     return '^{}$'.format(string)
@@ -214,9 +214,9 @@ def whatshap_record(datum, chr, cov, mode, maxcov) :
 def compare_pipelines(mode, maxcov, alpha) :
 
     head()
-    msg('HapChat -- switch error for each pipeline')
+    msg(' HapChat -- switch error for each pipeline')
     modemax(mode, maxcov)
-    msg('alpha = {}'.format(alpha))
+    msg(' alpha = {}'.format(alpha))
     tail()
 
     print('#dataset', ' '.join(pipelines))
@@ -240,9 +240,9 @@ def compare_pipelines(mode, maxcov, alpha) :
 def vary_alpha(pipeline, mode, maxcov) :
 
     head()
-    msg('HapChat -- switch error as a function of alpha')
+    msg(' HapChat -- switch error as a function of alpha')
     modemax(mode, maxcov)
-    msg('pipeline = {}'.format(pipeline_name[pipeline]))
+    msg(' pipeline = {}'.format(pipeline_name[pipeline]))
     tail()
 
     print('#dataset', ' '.join(alphas[1:]))
@@ -266,10 +266,10 @@ def vary_alpha(pipeline, mode, maxcov) :
 def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
 
     head()
-    msg('HapChat vs. WhatsHap')
+    msg(' HapChat vs. WhatsHap')
     modemax(mode, maxcov)
-    msg('HapChat pipeline = {}'.format(pipeline_name[pipeline]))
-    msg('HapChat alpha = {}'.format(alpha))
+    msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
+    msg(' HapChat alpha = {}'.format(alpha))
     tail()
 
     print('#dataset HapChat WhatsHap')
