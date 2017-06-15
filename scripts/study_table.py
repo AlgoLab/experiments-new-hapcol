@@ -168,19 +168,20 @@ def modemax(mode, maxcov) :
     msg(mode)
     msg('final cov = {}'.format(maxcov))
 
-def annote(string, emph = False) :
-    if emph :
-        return '^{}$'.format(string)
-    return '?{}?'.format(string)
-    
-def emph_winner(values) :
-    emph_winners = []
+def emph(string) :
+    return '^{}$'.format(string)
+
+def emph_winners(values) :
+    row = []
     winning_value = min([float(value) for value in values])
 
     for value in values :
-        emph_winners.append(annote(value, float(value) == winning_value))
+        if float(value) == winning_value :
+            row.append(emph(value))
+        else :
+            row.append(value)
 
-    return ' '.join(emph_winners)
+    return ' '.join(row)
             
 # some shortcuts in the table, etc.
 #----------------------------------------------------------------------
@@ -270,8 +271,8 @@ def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
                 t_data = table['HapChat'][datum][chr][cov][mode]
                 record = pipeline_record(pipeline, t_data, maxcov, alpha)
                 wh_record = whatshap_record(datum,chr,cov,mode,maxcov)
-                winline = emph_winner([record['SwErrRatePerc'],
-                                   wh_record['SwErrRatePerc']])
+                winline = emph_winners([record['SwErrRatePerc'],
+                                        wh_record['SwErrRatePerc']])
 
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
                 

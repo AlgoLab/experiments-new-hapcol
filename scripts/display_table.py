@@ -53,12 +53,10 @@ while i < len(a) :
 #----------------------------------------------------------------------
 
 for line in entree :
-
-    pre = line.replace('?',' ')
     
     if blue :
-        print(pre.replace('^','\033[94m').replace('$','\033[0m'), end = '')
+        print(line.replace('^','  \033[94m').replace('$','\033[0m'), end = '')
     elif slack :
-        print(pre.replace('^','*').replace('$','*'), end = '')
+        print(line.replace('^','*').replace('$','*'), end = '')
     else :
-        print(pre.replace('^',' ').replace('$',' '), end = '')
+        print(line.replace('^',' ').replace('$',' '), end = '')
