@@ -2,7 +2,7 @@ import sys
 
 # setup
 #----------------------------------------------------------------------
-columns = 'Tool Data Technology Individual Chr MeanCov RawRealigned WhDowns Merge MergeE MergeM MergeT MergeN MergeTimeSec MergeMaxMemMB RndDowns RndDownsSeed RndDownsMaxCov RndDownsTimeSec RndDownsMaxMemMB FurtherMerging Epsilon Alpha BalThr BalRatio SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB'.split()
+columns = 'Tool Data Technology Individual Chr MeanCov RawRealigned WhDowns WhDownsTimeSec Merge MergeE MergeM MergeT MergeN MergeTimeSec MergeMaxMemMB RndDowns RndDownsSeed RndDownsMaxCov RndDownsTimeSec RndDownsMaxMemMB FurtherMerging Epsilon Alpha BalThr BalRatio SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB'.split()
 ncols = len(columns)
 print('number of columns:', ncols, file = sys.stderr)
 
