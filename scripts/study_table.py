@@ -163,6 +163,7 @@ def head() :
 
 def tail() :
     msg(70*'-')
+    msg('')
 
 def modemax(mode, maxcov) :
     msg(mode)
@@ -219,16 +220,20 @@ def compare_pipelines(mode, maxcov, alpha) :
     tail()
 
     print('#dataset', ' '.join(pipelines))
+    print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
-                print('{}.{}.cov{}'.format(datum,chr,cov), end = ' ')
+                row = []
                 for pipeline in pipelines :
                     record = pipeline_record(pipeline, t_data, maxcov, alpha)
-                    print(record['SwErrRatePerc'], end = ' ')
-                print()
+                    row.append(record['SwErrRatePerc'])
+
+                winline = emph_winners(row)
+                print('{}.{}.cov{}'.format(datum,chr,cov), winline)
+            print()
 
 # how does a hapchat pipeline vary with alpha
 #----------------------------------------------------------------------
@@ -241,16 +246,20 @@ def vary_alpha(pipeline, mode, maxcov) :
     tail()
 
     print('#dataset', ' '.join(alphas[1:]))
+    print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
-                print('{}.{}.cov{}'.format(datum,chr,cov), end = ' ')
+                row = []
                 for alpha in alphas[1:] :
                     record = pipeline_record(pipeline, t_data, maxcov, alpha)
-                    print(record['SwErrRatePerc'], end = ' ')
-                print()
+                    row.append(record['SwErrRatePerc'])
+
+                winline = emph_winners(row)
+                print('{}.{}.cov{}'.format(datum,chr,cov), winline)
+            print()
 
 # how does hapchat compare to whatshap
 #----------------------------------------------------------------------
@@ -264,6 +273,7 @@ def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
     tail()
 
     print('#dataset HapChat WhatsHap')
+    print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
@@ -275,7 +285,8 @@ def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
                                         wh_record['SwErrRatePerc']])
 
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
-                
+            print()
+
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
