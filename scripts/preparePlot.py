@@ -11,6 +11,8 @@ def getWhInfo(wh_log_file):
         for line in whlog.readlines():
             if line.startswith("MEC cost:"):
                 info["score"] = int(line.strip().split(':')[1])
+            if line.startswith("Time spent selecting reads:"):
+                info["downs"] = float(line.strip().replace(" ", "").split(':')[1][:-1])
             if line.startswith("Time spent phasing:"):
                 info["time"] = float(line.strip().replace(" ", "").split(':')[1][:-1])
         return info
