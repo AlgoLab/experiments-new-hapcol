@@ -187,11 +187,17 @@ def emph_winners(values) :
 # some shortcuts in the table, etc.
 #----------------------------------------------------------------------
 pipelines = 'whdowns merge-t6 merge-t17 rnddowns'.split()
-    
+
 pipeline_name = {'whdowns' : 'whatshap downsampling',
-                  'merge-t6' : 'merging threshold 6',
-                  'merge-t17' : 'merging threshold 17',
-                  'rnddowns' : 'random downsampling'}
+                 'merge-t6' : 'merging threshold 6',
+                 'merge-t17' : 'merging threshold 17',
+                 'rnddowns' : 'random downsampling'}
+
+measures = 'swerr time mem'.split()
+
+measure_name = {'swerr' : 'switch error percentage',
+                'time' : 'time in seconds',
+                'mem' : 'memory used in Mb'}
 
 def pipeline_record(pipeline, t_data, maxcov, alpha) :
 
@@ -206,15 +212,64 @@ def pipeline_record(pipeline, t_data, maxcov, alpha) :
     else :
         assert False, 'unknown pipeline: '+pipeline
 
+def pipeline_time(pipeline, t_data, maxcov, alpha) :
+
+    record = pipeline_record(pipeline, t_data, maxcov, alpha)
+    times = []
+    if pipeline == 'whdowns' :
+        times = [record['WhDownsTimeSec'], record['PhasTimeSec']]
+    elif pipeline in 'merge-t6 merge-t17'.split() :
+        times = [record['MergeTimeSec'], record['RndDownsTimeSec'],
+                 record['PhasTimeSec']]
+    elif pipeline == 'rnddowns' :
+        times = [record['RndDownsTimeSec'], record['PhasTimeSec']]
+    else :
+        assert False, 'unkown pipeline: '+pipeline
+
+    return '{:.3f}'.format(sum([float(time) for time in times]))
+
+def pipeline_mem(pipeline, t_data, maxcov, alpha) :
+
+    record = pipeline_record(pipeline, t_data, maxcov, alpha)
+    mems = []
+    if pipeline == 'whdowns' :
+        mems = [record['PhasMaxMemMB']]
+    elif pipeline in 'merge-t6 merge-t17'.split() :
+        mems = [record['MergeMaxMemMB'], record['RndDownsMaxMemMB'],
+                 record['PhasMaxMemMB']]
+    elif pipeline == 'rnddowns' :
+        mems = [record['RndDownsMaxMemMB'], record['PhasMaxMemMB']]
+    else :
+        assert False, 'unkown pipeline: '+pipeline
+
+    return '{:.3f}'.format(max([float(mem) for mem in mems]))
+
+def pipeline_measure(measure, pipeline, t_data, maxcov, alpha) :
+
+    if measure == 'swerr' :
+        return pipeline_record(pipeline, t_data, maxcov, alpha)['SwErrRatePerc']
+    elif measure == 'time' :
+        return pipeline_time(pipeline, t_data, maxcov, alpha)
+    elif measure == 'mem' :
+        return pipeline_mem(pipeline, t_data, maxcov, alpha)
+    else :
+        assert False, 'unknown measure: '+measure
+
 def whatshap_record(datum, chr, cov, mode, maxcov) :
     return table['WhatsHap'][datum][chr][cov][mode][str(maxcov)][no_merging][no_downs]['NA'][no_beta]
 
+def whatshap_time(datum, chr, cov, mode, maxcov) :
+    record = whatshap_record(datum, chr, cov, mode, maxcov)
+    times = [record['WhDownsTimeSec'], record['PhasTimeSec']]
+
+    return '{:.3f}'.format(sum([float(time) for time in times]))
+
 # compare the different pipelines for hapchat
 #----------------------------------------------------------------------
-def compare_pipelines(mode, maxcov, alpha) :
+def compare_pipelines(measure, mode, maxcov, alpha) :
 
     head()
-    msg(' HapChat -- switch error for each pipeline')
+    msg(' HapChat -- {} for each pipeline'.format(measure_name[measure]))
     modemax(mode, maxcov)
     msg(' alpha = {}'.format(alpha))
     tail()
@@ -228,8 +283,7 @@ def compare_pipelines(mode, maxcov, alpha) :
                 t_data = table['HapChat'][datum][chr][cov][mode]
                 row = []
                 for pipeline in pipelines :
-                    record = pipeline_record(pipeline, t_data, maxcov, alpha)
-                    row.append(record['SwErrRatePerc'])
+                    row.append(pipeline_measure(measure, pipeline, t_data, maxcov, alpha))
 
                 winline = emph_winners(row)
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
@@ -237,7 +291,7 @@ def compare_pipelines(mode, maxcov, alpha) :
 
 # how does a hapchat pipeline vary with alpha
 #----------------------------------------------------------------------
-def vary_alpha(pipeline, mode, maxcov) :
+def vary_alpha(measure, pipeline, mode, maxcov) :
 
     head()
     msg(' HapChat -- switch error as a function of alpha')
@@ -254,8 +308,7 @@ def vary_alpha(pipeline, mode, maxcov) :
                 t_data = table['HapChat'][datum][chr][cov][mode]
                 row = []
                 for alpha in alphas[1:] :
-                    record = pipeline_record(pipeline, t_data, maxcov, alpha)
-                    row.append(record['SwErrRatePerc'])
+                    row.append(pipeline_measure(measure, pipeline, t_data, maxcov, alpha))
 
                 winline = emph_winners(row)
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
@@ -290,10 +343,12 @@ def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
+measure = 'time'
+pipeline = 'whdowns'
 mode = 'realigned'
 maxcov = 20
 alpha = '0.1'
 
-#compare_pipelines(mode, maxcov, alpha)
-#vary_alpha(pipelines[0], mode, maxcov)
-hapchat_whatshap('merge-t17', mode, maxcov, alpha)
+#compare_pipelines(measure, mode, maxcov, alpha)
+#vary_alpha(measure, pipeline, mode, maxcov)
+#hapchat_whatshap(pipeline, mode, maxcov, alpha)
