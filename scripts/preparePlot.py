@@ -92,7 +92,7 @@ def main():
 
     logging.info("Program Started")
     with open(args.out_file, 'w') as out:
-        out.write("Tool,Data,Technology,Individual,Chr,MeanCov,RawRealigned,WhDowns")
+        out.write("Tool,Data,Technology,Individual,Chr,MeanCov,RawRealigned,WhDowns,WhDownsTimeSec")
         out.write(",Merge,MergeE,MergeM,MergeT,MergeN,MergeTimeSec,MergeMaxMemMB")
         out.write(",RndDowns,RndDownsSeed,RndDownsMaxCov,RndDownsTimeSec,RndDownsMaxMemMB")
         out.write(",FurtherMerging,Epsilon,Alpha,BalThr,BalRatio")
@@ -114,6 +114,15 @@ def main():
                     continue
                 if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"]:
                     continue
+
+                whdataset = ".".join(ds[:7])+".no_merging.no_downs.no_merging"
+                whdownstime = "NA"
+                if ds[6] != "hN" :
+                    whlfile = args.wh_dir + whdataset + ".log"
+                    if not os.path.isfile(whlfile) :
+                        logging.error("File not found: %s", whlfile)
+                        exit()
+                    whdownstime = str(getWhInfo(whlfile)["downs"])
 
                 out.write("HapChat,")                
                 num_inck += 1
@@ -170,6 +179,7 @@ def main():
                           ds[4].replace("cov", "") + "," +
                           ds[5] + "," +
                           ds[6].replace("h", "") + "," +
+                          whdownstime + "," +
                           merge + "," +
                           downs + "," +
                           "no" + "," +
@@ -217,6 +227,7 @@ def main():
                           ds[4].replace("cov", "") + "," +
                           ds[5] + "," +
                           ds[6].replace("h", "") + "," +
+                          str(wh_info["downs"]) + "," +
                           "no,NA,NA,NA,NA,NA,NA" + "," +
                           "no,NA,NA,NA,NA" + "," +
                           "no,NA,NA" + "," +
