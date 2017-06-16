@@ -380,6 +380,29 @@ def vary_param(variant, measure, pipeline, step, mode, maxcov, alpha) :
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
+# how does whatshap vary with final coverage
+#----------------------------------------------------------------------
+def whatshap_coverage(measure, mode) :
+
+    head()
+    msg(' WhatsHap -- {} as a function of final coverage'.format(measure_name[measure]))
+    msg(' '+mode)
+    tail()
+
+    print('#dataset', ' '.join(whdowns[1:]))
+    print()
+    for datum in data :
+        for chr in chrs :
+            for cov in meancovs :
+
+                row = []
+                for maxcov in whdowns[1:] :
+                    row.append(whatshap_measure(measure,datum,chr,cov,mode,maxcov))
+
+                winline = emph_winners(row)
+                print('{}.{}.cov{}'.format(datum,chr,cov), winline)
+            print()
+
 # how does hapchat compare to whatshap
 #----------------------------------------------------------------------
 def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
@@ -408,7 +431,7 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
-variant = 'maxcov' # alpha, maxcov
+variant = 'alpha' # alpha, maxcov
 measure = 'swerr'  # swerr, time, mem
 pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
 step = 'phasing' # prep, phasing, total
@@ -418,5 +441,6 @@ alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 # tables
 #vary_param(variant, measure, pipeline, step, mode, maxcov, alpha)
+#whatshap_coverage(measure, mode)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
 #hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
