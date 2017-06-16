@@ -390,12 +390,14 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
-measure = 'time'
-pipeline = 'whdowns'
-mode = 'realigned'
-maxcov = 20
-alpha = '0.1'
+measure = 'swerr'  # swerr, time, mem
+pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
+step = 'phasing' # prep, phasing, total
+mode = 'realigned' # raw, realigned
+maxcov = 20 # 15, 20
+alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
-#compare_pipelines(measure, mode, maxcov, alpha)
-#vary_alpha(measure, pipeline, mode, maxcov)
-#hapchat_whatshap(pipeline, mode, maxcov, alpha)
+# tables
+vary_alpha(measure, pipeline, step, mode, maxcov)
+#compare_pipelines(measure, step, mode, maxcov, alpha)
+#hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
