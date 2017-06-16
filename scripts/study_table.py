@@ -167,7 +167,7 @@ def tail() :
 
 def modemax(mode, maxcov) :
     msg(' '+mode)
-    msg(' final cov = {}'.format(maxcov))
+    msg(' final coverage = {}'.format(maxcov))
 
 def emph(string) :
     return '^{}$'.format(string)
@@ -217,6 +217,23 @@ def step_name(measure, step) :
     return step+' '
 
 nonvalues = '? _'.split()
+
+variants = 'alpha maxcov'.split()
+
+variant_name = {'alpha' : 'alpha',
+                'maxcov' : 'final coverage'}
+
+variant_vals = {'alpha' : alphas[1:],
+                'maxcov' : whdowns[1:]}
+
+def apply_variant(variant, maxcov, alpha, value) :
+
+    if variant == 'maxcov' :
+        return value, alpha
+    elif variant == 'alpha' :
+        return maxcov, value
+    else :
+        assert False, 'unknown variant: '+variant
 
 def pipeline_record(pipeline, t_data, maxcov, alpha) :
 
@@ -337,17 +354,17 @@ def compare_pipelines(measure, step, mode, maxcov, alpha) :
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
-# how does a hapchat pipeline vary with alpha
+# how does a hapchat pipeline vary with some parameter
 #----------------------------------------------------------------------
-def vary_alpha(measure, pipeline, step, mode, maxcov) :
+def vary_param(variant, measure, pipeline, step, mode, maxcov, alpha) :
 
     head()
-    msg(' HapChat -- {}{} as a function of alpha'.format(step_name(measure,step), measure_name[measure]))
+    msg(' HapChat -- {}{} as a function of {}'.format(step_name(measure,step), measure_name[measure], variant_name[variant]))
     modemax(mode, maxcov)
     msg(' pipeline = {}'.format(pipeline_name[pipeline]))
     tail()
 
-    print('#dataset', ' '.join(alphas[1:]))
+    print('#dataset', ' '.join(variant_vals[variant]))
     print()
     for datum in data :
         for chr in chrs :
@@ -355,7 +372,8 @@ def vary_alpha(measure, pipeline, step, mode, maxcov) :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
                 row = []
-                for alpha in alphas[1:] :
+                for value in variant_vals[variant] :
+                    maxcov, alpha = apply_variant(variant, maxcov, alpha, value)
                     row.append(pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha))
 
                 winline = emph_winners(row)
@@ -390,6 +408,7 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
+variant = 'maxcov' # alpha, maxcov
 measure = 'swerr'  # swerr, time, mem
 pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
 step = 'phasing' # prep, phasing, total
@@ -398,6 +417,6 @@ maxcov = 20 # 15, 20
 alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 # tables
-vary_alpha(measure, pipeline, step, mode, maxcov)
+#vary_param(variant, measure, pipeline, step, mode, maxcov, alpha)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
 #hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
