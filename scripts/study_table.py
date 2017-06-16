@@ -301,6 +301,17 @@ def whatshap_time(datum, chr, cov, mode, maxcov) :
 
     return '{:.3f}'.format(sum([float(time) for time in times]))
 
+def whatshap_measure(measure, datum, chr, cov, mode, maxcov) :
+
+    if measure == 'swerr' :
+        return whatshap_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc']
+    elif measure == 'time' :
+        return whatshap_time(datum, chr, cov, mode, maxcov)
+    elif measure == 'mem' :
+        return '?' # unsupported at the moment
+    else :
+        assert False, 'unknown measure: '+measure
+
 # compare the different pipelines for hapchat
 #----------------------------------------------------------------------
 def compare_pipelines(measure, step, mode, maxcov, alpha) :
@@ -353,10 +364,10 @@ def vary_alpha(measure, pipeline, step, mode, maxcov) :
 
 # how does hapchat compare to whatshap
 #----------------------------------------------------------------------
-def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
+def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 
     head()
-    msg(' HapChat vs. WhatsHap')
+    msg(' HapChat vs. WhatsHap in terms of {}'.format(measure_name[measure]))
     modemax(mode, maxcov)
     msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
     msg(' HapChat alpha = {}'.format(alpha))
@@ -369,10 +380,9 @@ def hapchat_whatshap(pipeline, mode, maxcov, alpha) :
             for cov in meancovs :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
-                record = pipeline_record(pipeline, t_data, maxcov, alpha)
-                wh_record = whatshap_record(datum,chr,cov,mode,maxcov)
-                winline = emph_winners([record['SwErrRatePerc'],
-                                        wh_record['SwErrRatePerc']])
+                hc = pipeline_measure(measure, pipeline, 'total', t_data, maxcov, alpha)
+                wh = whatshap_measure(measure,datum,chr,cov,mode,maxcov)
+                winline = emph_winners([hc, wh])
 
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
