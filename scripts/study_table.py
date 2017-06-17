@@ -166,7 +166,7 @@ def tail() :
     msg('')
 
 def modemax(mode, maxcov) :
-    msg(' '+mode)
+    msg(' realignment mode = {}'.format(mode))
     msg(' final coverage = {}'.format(maxcov))
 
 def emph(string) :
@@ -192,7 +192,7 @@ def emph_winners(values) :
 
     return ' '.join(row)
 
-# some shortcuts in the table, etc.
+# some preamble for the display of the data
 #----------------------------------------------------------------------
 pipelines = 'whdowns merge-t6 merge-t17 rnddowns'.split()
 
@@ -218,23 +218,47 @@ def step_name(measure, step) :
 
 nonvalues = '? _'.split()
 
-variants = 'alpha maxcov'.split()
+variants = 'mode alpha maxcov'.split()
 
-variant_name = {'alpha' : 'alpha',
+variant_name = {'mode' : 'realignment mode',
+                'alpha' : 'alpha',
                 'maxcov' : 'final coverage'}
 
-variant_vals = {'alpha' : alphas[1:],
+variant_vals = {'mode' : modes,
+                'alpha' : alphas[1:],
                 'maxcov' : whdowns[1:]}
 
-def apply_variant(variant, maxcov, alpha, value) :
+def apply_variant(variant, mode, maxcov, alpha, value) :
 
-    if variant == 'maxcov' :
-        return value, alpha
+    if variant == 'mode' :
+        return value, maxcov, alpha
+    elif variant == 'maxcov' :
+        return mode, value, alpha
     elif variant == 'alpha' :
-        return maxcov, value
+        return mode, maxcov, value
     else :
         assert False, 'unknown variant: '+variant
 
+def display_invariant(variant, mode, maxcov, alpha) :
+
+    mode_ = ' realignment mode = {}'.format(mode)
+    maxcov_ = ' final coverage = {}'.format(maxcov)
+    alpha_ = ' alpha = {}'.format(alpha)
+
+    if variant == 'mode' :
+        msg(maxcov_)
+        msg(alpha_)
+    elif variant == 'maxcov' :
+        msg(mode_)
+        msg(alpha_)
+    elif variant == 'alpha' :
+        msg(mode_)
+        msg(maxcov_)
+    else :
+        assert False, 'unknown variant: '+variant
+
+# some shortcuts in the table, etc.
+#----------------------------------------------------------------------
 def pipeline_record(pipeline, t_data, maxcov, alpha) :
 
     if pipeline == 'whdowns' :
@@ -360,20 +384,20 @@ def vary_param(variant, measure, pipeline, step, mode, maxcov, alpha) :
 
     head()
     msg(' HapChat -- {}{} as a function of {}'.format(step_name(measure,step), measure_name[measure], variant_name[variant]))
-    modemax(mode, maxcov)
+    display_invariant(variant, mode, maxcov, alpha)
     msg(' pipeline = {}'.format(pipeline_name[pipeline]))
     tail()
 
-    print('#dataset', ' '.join(variant_vals[variant]))
+    print('#dataset\{}'.format(variant), ' '.join(variant_vals[variant]))
     print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
-                t_data = table['HapChat'][datum][chr][cov][mode]
                 row = []
                 for value in variant_vals[variant] :
-                    maxcov, alpha = apply_variant(variant, maxcov, alpha, value)
+                    mode, maxcov, alpha = apply_variant(variant, mode, maxcov, alpha, value)
+                    t_data = table['HapChat'][datum][chr][cov][mode]
                     row.append(pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha))
 
                 winline = emph_winners(row)
@@ -431,8 +455,8 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
-variant = 'alpha' # alpha, maxcov
-measure = 'swerr'  # swerr, time, mem
+variant = 'alpha' # mode, alpha, maxcov
+measure = 'swerr' # swerr, time, mem
 pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
 step = 'phasing' # prep, phasing, total
 mode = 'realigned' # raw, realigned
@@ -441,6 +465,6 @@ alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 # tables
 #vary_param(variant, measure, pipeline, step, mode, maxcov, alpha)
-#whatshap_coverage(measure, mode)
+#vary_whatshap(variant, measure, mode, maxcov)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
 #hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
