@@ -404,23 +404,30 @@ def vary_param(variant, measure, pipeline, step, mode, maxcov, alpha) :
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
-# how does whatshap vary with final coverage
+# how does whatshap vary with some parameter
 #----------------------------------------------------------------------
-def whatshap_coverage(measure, mode) :
+def vary_whatshap(variant, measure, mode, maxcov) :
 
     head()
-    msg(' WhatsHap -- {} as a function of final coverage'.format(measure_name[measure]))
-    msg(' '+mode)
+    msg(' WhatsHap -- {} as a function of {}'.format(measure_name[measure], variant_name[variant]))
+    if variant == 'mode' :
+        msg(' final coverage = {}'.format(maxcov))
+    elif variant == 'maxcov' :
+        msg(' realignment mode = '+mode)
+    else :
+        assert False, 'illegal variant for WhatsHap: '+variant
     tail()
 
-    print('#dataset', ' '.join(whdowns[1:]))
+    print('#dataset\{}'.format(variant), ' '.join(variant_vals[variant]))
     print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
                 row = []
-                for maxcov in whdowns[1:] :
+                alpha = None
+                for value in variant_vals[variant] :
+                    mode, maxcov, alpha = apply_variant(variant, mode, maxcov, alpha, value)
                     row.append(whatshap_measure(measure,datum,chr,cov,mode,maxcov))
 
                 winline = emph_winners(row)
