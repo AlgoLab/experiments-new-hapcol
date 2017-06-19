@@ -464,6 +464,32 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
+
+# custom hapchat vs. whatshap table
+#----------------------------------------------------------------------
+def custom_hapchat_whatshap(measure, pipeline, mode, alpha) :
+
+    head()
+    msg(' HapChat vs. WhatsHap in terms of {}'.format(measure_name[measure]))
+    msg(' realignment mode = {}'.format(mode))
+    msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
+    msg(' HapChat alpha = {}'.format(alpha))
+    tail()
+
+    print('#dataset HC,maxcov=20 WH,maxcov=15')
+    print()
+    for datum in data :
+        for chr in chrs :
+            for cov in meancovs :
+
+                t_data = table['HapChat'][datum][chr][cov][mode]
+                hc = pipeline_measure(measure, pipeline, 'total', t_data, 20, alpha)
+                wh = whatshap_measure(measure,datum,chr,cov,mode,15)
+                winline = emph_winners([hc, wh])
+
+                print('{}.{}.cov{}'.format(datum,chr,cov), winline)
+            print()
+
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
