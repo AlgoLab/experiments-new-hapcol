@@ -14,8 +14,8 @@ modes = 'raw realigned'.split()
 whdowns = 'N 15 20'.split()
 no_merging = 'no NA NA NA NA'
 mergings = [no_merging,
-          'yes 0.15 0.25 1e+6 1e+3',
-          'yes 0.15 0.25 1e+17 1e+3']
+            'yes 0.15 0.25 1e+6 1e+3',
+            'yes 0.15 0.25 1e+17 1e+3']
 no_downs = 'no NA NA'
 rnddowns = [no_downs, 'yes 1 15', 'yes 1 20']
 alphas = 'NA 0.1 0.01 0.001 0.0001 0.00001'.split()
@@ -201,16 +201,17 @@ pipeline_name = {'whdowns' : 'whatshap downsampling',
                  'merge-t17' : 'merging threshold 17',
                  'rnddowns' : 'random downsampling'}
 
-measures = 'swerr time mem'.split()
+measures = 'swerr hamming time mem'.split()
 
 measure_name = {'swerr' : 'switch error percentage',
+                'hamming' : 'hamming distanct percentage',
                 'time' : 'time in seconds',
                 'mem' : 'memory used in Mb'}
 
 steps = 'prep phasing total'.split()
 
 def step_name(measure, step) :
-    if measure == 'swerr' :
+    if measure in ['swerr', 'hamming'] :
         return ''
     if step == 'prep' :
         return 'preprocessing '
@@ -326,6 +327,8 @@ def pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha) :
 
     if measure == 'swerr' :
         return pipeline_record(pipeline, t_data, maxcov, alpha)['SwErrRatePerc']
+    elif measure == 'hamming' :
+        return pipeline_record(pipeline, t_data, maxcov, alpha)['HamDistPerc']
     elif measure == 'time' :
         return pipeline_time(pipeline, step, t_data, maxcov, alpha)
     elif measure == 'mem' :
@@ -346,6 +349,8 @@ def whatshap_measure(measure, datum, chr, cov, mode, maxcov) :
 
     if measure == 'swerr' :
         return whatshap_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc']
+    elif measure == 'hamming' :
+        return whatshap_record(datum, chr, cov, mode, maxcov)['HamDistPerc']
     elif measure == 'time' :
         return whatshap_time(datum, chr, cov, mode, maxcov)
     elif measure == 'mem' :
@@ -463,7 +468,7 @@ def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
 #----------------------------------------------------------------------
 
 variant = 'alpha' # mode, alpha, maxcov
-measure = 'swerr' # swerr, time, mem
+measure = 'swerr' # swerr, hamming, time, mem
 pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
 step = 'phasing' # prep, phasing, total
 mode = 'realigned' # raw, realigned
@@ -475,3 +480,4 @@ alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 #vary_whatshap(variant, measure, mode, maxcov)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
 #hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
+#custom_hapchat_whatshap(measure, pipeline, mode, alpha)
