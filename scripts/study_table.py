@@ -20,7 +20,8 @@ no_downs = 'no NA NA'
 rnddowns = [no_downs] + ['yes 1 {}'.format(maxcov) for maxcov in whdowns[1:]]
 alphas = 'NA 0.1 0.01 0.001 0.0001 0.00001'.split()
 no_beta = 'NA NA'
-betas = [no_beta, 'N 0']
+null_beta = 'N 0'
+betas = [no_beta, null_beta]
 
 # initialize table
 table = {}
@@ -278,13 +279,13 @@ def display_invariant(variant, mode, maxcov, alpha) :
 def pipeline_record(pipeline, t_data, maxcov, alpha) :
 
     if pipeline == 'whdowns' :
-        return t_data[str(maxcov)][no_merging][no_downs][alpha]['N 0']
+        return t_data[str(maxcov)][no_merging][no_downs][alpha][null_beta]
     elif pipeline == 'merge-t6' :
-        return t_data['N'][mergings[1]]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+        return t_data['N'][mergings[1]]['yes 1 {}'.format(maxcov)][alpha][null_beta]
     elif pipeline == 'merge-t17' :
-        return t_data['N'][mergings[2]]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+        return t_data['N'][mergings[2]]['yes 1 {}'.format(maxcov)][alpha][null_beta]
     elif pipeline == 'rnddowns' :
-        return t_data['N'][no_merging]['yes 1 {}'.format(maxcov)][alpha]['N 0']
+        return t_data['N'][no_merging]['yes 1 {}'.format(maxcov)][alpha][null_beta]
     else :
         assert False, 'unknown pipeline: '+pipeline
 
