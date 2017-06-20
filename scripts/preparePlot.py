@@ -106,14 +106,22 @@ def main():
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
+                hi_hs = ['h25', 'h30']
+                hi_ms = ['downs_s1_m25', 'downs_s1_m30']
                 if ds[4] not in coverages :
                     continue
-                if ds[6] not in ["hN", "h15", "h20"]:
+                if ds[6] not in ["hN", "h15", "h20"] + hi_hs :
                     continue
                 if ds[7] not in mergings + ['no_merging'] :
                     continue
-                if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"]:
+                if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"] + hi_ms :
                     continue
+
+                if ds[6] in hi_hs or ds[8] in hi_ms :
+                    if ds[5] != 'realigned' :
+                        continue
+                    if ds[10] != '05_1' :
+                        continue
 
                 whdataset = ".".join(ds[:7])+".wif"
                 whdownstime = "NA"
