@@ -11,13 +11,13 @@ data = 'ashk sim'.split()
 chrs = 'chr1 chr21'.split()
 meancovs = '15 20 25 30 40 50 60'.split()
 modes = 'raw realigned'.split()
-whdowns = 'N 15 20'.split()
+whdowns = 'N 15 20 25 30'.split()
 no_merging = 'no NA NA NA NA'
 mergings = [no_merging,
             'yes 0.15 0.25 1e+6 1e+3',
             'yes 0.15 0.25 1e+17 1e+3']
 no_downs = 'no NA NA'
-rnddowns = [no_downs, 'yes 1 15', 'yes 1 20']
+rnddowns = [no_downs] + ['yes 1 {}'.format(maxcov) for maxcov in whdowns[1:]]
 alphas = 'NA 0.1 0.01 0.001 0.0001 0.00001'.split()
 no_beta = 'NA NA'
 betas = [no_beta, 'N 0']
@@ -131,21 +131,36 @@ for datum in data :
                 t_hc = table['HapChat'][datum][chr][cov][mode]
 
                 for whdown in whdowns[1:] :
+                    for alpha in alphas[1:] :
+                        if whdown in whdowns[-2:] : # high covs for alpha=0.1, realigned only
+                            if mode != 'realigned' :
+                                continue
+                            if alpha != '0.1' :
+                                continue
+
+                        for beta in betas[1:] :
+                            assert t_hc[whdown][no_merging][no_downs][alpha][beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
+                            hccount += 1
+
+                    if whdown in whdowns[-2:] : # no high covs for whatshap
+                        continue
+
                     t_wh = table['WhatsHap'][datum][chr][cov][mode][whdown]
 
                     assert t_wh[no_merging][no_downs]['NA'][no_beta], 'no record for WhatsHap, dataset: {}, WhDowns: {}'.format(dataset, whdown)
                     whcount += 1
-
-                    for alpha in alphas[1:] :
-                        for beta in betas[1:] :
-                            assert t_hc[whdown][no_merging][no_downs][alpha][beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
-                            hccount += 1
 
                 for merging in mergings :
                     for rnddown in rnddowns[1:] :
                         t_m = t_hc['N'][merging][rnddown]
 
                         for alpha in alphas[1:] :
+                            if rnddown in rnddowns[-2:] : # high covs for alpha=0.1, realigned only
+                                if mode != 'realigned' :
+                                    continue
+                                if alpha != '0.1' :
+                                    continue
+
                             for beta in betas[1:] :
                                 assert t_m[alpha][beta], 'no record for HapChat, dataset: {}, merge: {}, random downsample: {}, Alpha: {}'.format(dataset, merging, rnddown, alpha)
                                 hccount += 1
