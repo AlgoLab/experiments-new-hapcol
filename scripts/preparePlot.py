@@ -115,10 +115,10 @@ def main():
                 if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"]:
                     continue
 
-                whdataset = ".".join(ds[:7])+".no_merging.no_downs.no_merging"
+                whdataset = ".".join(ds[:7])+".wif"
                 whdownstime = "NA"
                 if ds[6] != "hN" :
-                    whlfile = args.wh_dir + whdataset + ".log"
+                    whlfile = args.wif_dir + whdataset + ".log"
                     if not os.path.isfile(whlfile) :
                         logging.error("File not found: %s", whlfile)
                         exit()
