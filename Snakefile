@@ -77,6 +77,15 @@ rule master :
 			ea = ea_vals,
 			ext = exts),
 
+		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
+			pattern = sliceof(
+				datasubset(
+					[1, 21],
+			                [15, 20, 25, 30, 40, 50, 60],
+					['realigned']),
+				[6, 17], [3], [25, 30]),
+			ext = exts),
+
 # coming up ..
 rule next :
 	input :
