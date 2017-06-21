@@ -78,6 +78,7 @@ rule master :
 			ea = ea_vals,
 			ext = exts),
 
+		# all 4 hapchat pipelines in the alpha=0.1, realigned case
 		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
 			pattern = sliceof(
 				datasubset(
@@ -85,6 +86,16 @@ rule master :
 			                [15, 20, 25, 30, 40, 50, 60],
 					['realigned']),
 				[6, 17], [3], [25, 30]),
+			ext = exts),
+
+		# the more aggressive merging hapchat pipeline only
+		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
+			pattern = postproc(
+				datasubset(
+					[1, 21],
+					[15, 20, 25, 30, 40, 50, 60],
+                                        ['realigned']),
+				[6], [3], [25, 30, 35]),
 			ext = exts),
 
 # coming up ..
