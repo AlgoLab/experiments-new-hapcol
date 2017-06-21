@@ -42,18 +42,19 @@ def merging(thrs_, negthrs_) :
 		for err_ in error_rates
 		for max_ in max_errs
 		for thresh_ in thrs_
-		for neg_ in negthrs_] + ['.no_merging']
+		for neg_ in negthrs_]
 
 # datasets postprocessed to a specified list of max cov
-def postproc(datasets_, thrs_, negthrs_, maxs_) :
+def postproc(datasets_, thrs_, negthrs_, maxs_, rnddowns = False) :
+	only_rnddowns = ['.no_merging'] if rnddowns else []
 	return ['{}.hN{}{}.no_merging'.format(dataset_, merging_, downsampling_)
 		for dataset_ in datasets_
-		for merging_ in merging(thrs_, negthrs_)
+		for merging_ in merging(thrs_, negthrs_) + only_rnddowns
 		for downsampling_ in downs(maxs_)]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
 def sliceof(datasets_, thrs_, negthrs_, maxs_) :
-	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_)
+	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_, True)
 
 # define a subset of the datasets in terms of chromosomes and coverages
 def datasubset(chromosomes_, coverages_, modes_) :
