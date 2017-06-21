@@ -220,7 +220,7 @@ pipeline_name = {'whdowns' : 'whatshap downsampling',
 measures = 'swerr hamming time mem'.split()
 
 measure_name = {'swerr' : 'switch error percentage',
-                'hamming' : 'hamming distanct percentage',
+                'hamming' : 'hamming distance percentage',
                 'time' : 'time in seconds',
                 'mem' : 'memory used in Mb'}
 
@@ -492,16 +492,23 @@ def custom_hapchat_whatshap(measure, pipeline, mode, alpha) :
     msg(' HapChat alpha = {}'.format(alpha))
     tail()
 
-    print('#dataset HC,maxcov=20 WH,maxcov=15')
+    hc_maxcovs = [25, 30]
+    hc_line = ' '.join(['HC,maxcov={}'.format(maxcov) for maxcov in hc_maxcovs])
+    wh_maxcov = 15
+    print('#dataset', hc_line, 'WH,maxcov={}'.format(wh_maxcov))
     print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
-                hc = pipeline_measure(measure, pipeline, 'total', t_data, 20, alpha)
-                wh = whatshap_measure(measure,datum,chr,cov,mode,15)
-                winline = emph_winners([hc, wh])
+                hcs = []
+                for hc_maxcov in hc_maxcovs :
+                    hc = pipeline_measure(measure, pipeline, 'total', t_data, hc_maxcov, alpha)
+                    hcs.append(hc)
+
+                wh = whatshap_measure(measure,datum,chr,cov,mode,wh_maxcov)
+                winline = emph_winners(hcs + [wh])
 
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
@@ -509,12 +516,12 @@ def custom_hapchat_whatshap(measure, pipeline, mode, alpha) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
-variant = 'alpha' # mode, alpha, maxcov
+variant = 'maxcov' # mode, alpha, maxcov
 measure = 'swerr' # swerr, hamming, time, mem
 pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
-step = 'phasing' # prep, phasing, total
+step = 'total' # prep, phasing, total
 mode = 'realigned' # raw, realigned
-maxcov = 20 # 15, 20
+maxcov = 20 # 15, 20, 25, 30
 alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 # tables
