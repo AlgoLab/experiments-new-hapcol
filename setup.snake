@@ -21,7 +21,7 @@ high_coverages = [40, 50, 60]
 
 # whatshap processing
 realignment = ['raw', 'realigned'] # whatshap realignment
-hs = [15, 20, 25, 30, 'N'] # whatshap read selection
+hs = [15, 20, 25, 30, 35, 'N'] # whatshap read selection
 
 # merging
 merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
@@ -38,7 +38,7 @@ mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 # downsampling to a max coverage (in a random greedy way)
 downsample_pattern = '.downs_s[0-9]+_m[0-9]+'
 seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
-max_covs = [15, 20, 25, 30]
+max_covs = [15, 20, 25, 30, 35]
 downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 	for seed in seeds
 	for max in max_covs] + ['.no_downs']
