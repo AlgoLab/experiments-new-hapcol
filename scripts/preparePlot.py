@@ -64,7 +64,7 @@ def main():
     mergings = ['merged_e15_m25_t{}_n3'.format(t) for t in '6 17'.split()]
 
     parser = argparse.ArgumentParser(prog = "preparePlot",
-                                     description = "Prepare Hplotyping data.",
+                                     description = "Prepare Haplotyping data.",
                                      formatter_class = argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-i', '--inck', help = "Increase k HapChat dir.",
                         required = True, dest = 'inck_dir')
@@ -72,6 +72,8 @@ def main():
                         required = True, dest = 'wif_dir')
     parser.add_argument('-w', '--whatshap', help = "WhatsHap dir.",
                         required = False, dest = 'wh_dir')
+    parser.add_argument('-c', '--hapcol', help = 'HapCol dir.',
+                        required = False, dest = 'hc_dir')
     parser.add_argument('-o', '--out-file', help = "CSV output file.",
                         required = True, dest = 'out_file')
     parser.add_argument('-v', '--verbose',
@@ -248,7 +250,57 @@ def main():
                 out.write("\n")
                 
         logging.info("Parsed %d WhatsHap files.", num_wh)
-        
+
+        # HapCol
+        num_hc = 0
+        logging.info('Parsing HapCol files')
+        for df in os.listdir(args.hc_dir) :
+            if df.endswith('.diff') :
+                ds = df.rstrip().split('.')[:-1]
+                dataset = '.'.join(ds)
+
+                # filter
+                if ds[4] not in coverages :
+                    continue
+
+                whdataset = '.'.join(ds[:7]) + '.wif'
+                whlfile = args.wif_dir + whdataset + '.log'
+                if not os.path.isfile(whlfile) :
+                    logging.error('File not found: %s', whlfile)
+                    exit()
+                whdownstime = str(getWhInfo(whlfile)['downs'])
+
+                out.write('HapCol,')
+                num_hc += 1
+                qual = getQUAL(args.hc_dir + df)
+                tfile = args.hc_dir + dataset + '.time'
+                if not os.path.isfile(tfile) :
+                    logging.error('File not found: %s', tfile)
+                    exit()
+                info = getTimeMem(tfile)
+                lfile = args.hc_dir + dataset + '.mec'
+                if not os.path.isfile(lfile) :
+                    logging.error('File not found: %s', lfile)
+                    exit()
+                score = getMEC(lfile)
+                out.write(','.join(ds[0:4]) + ',' +
+                          ds[4].replace('cov', '') + ',' +
+                          ds[5] + ',' +
+                          ds[6].replace('h', '') + ',' +
+                          whdownstime + ',' +
+                          'no,NA,NA,NA,NA,NA,NA,' +
+                          'no,NA,NA,NA,NA,' +
+                          'no,NA,NA,' +
+                          'NA,NA,' +
+                          qual['ser'] + ',' +
+                          qual['ham'] + ',' +
+                          score + ',' +
+                          str(info['time']) + ',' +
+                          str(info['mem']))
+                out.write('\n')
+
+        logging.info('Parsed %d HapCol files.', num_hc)
+
     logging.info("Program Finshed")
 
 if __name__ == "__main__":
