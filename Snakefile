@@ -27,7 +27,7 @@ ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001'
 exts = ['diff', 'mec', 'sites']
 
 #
-# useful list-defining functions
+# useful list-defining functions (and lists)
 #----------------------------------------------------------------------
 
 # downsampling to a specified list of max coverages
@@ -70,6 +70,12 @@ def datasubset(chromosomes_, coverages_, modes_) :
 		for coverage_ in coverages_
 		for mode_ in modes_]
 
+# since we only tend to run on realigned data
+realigned = datasubset(
+	[1, 21],
+	coverages + high_coverages,
+	['realigned'])
+
 #
 # master rule
 #----------------------------------------------------------------------
@@ -80,12 +86,7 @@ rule master :
 			ext = exts),
 
 		expand('output/hapcol/{pattern}.{ext}',
-			pattern = whatshap(
-				datasubset(
-					[1, 21],
-					[15, 20, 25, 30, 40, 50, 60],
-					['realigned']),
-				[15, 20, 25]),
+			pattern = whatshap(realigned, [15, 20, 25]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
@@ -95,22 +96,12 @@ rule master :
 
 		# all 4 hapchat pipelines in the alpha=0.1, realigned case
 		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
-			pattern = sliceof(
-				datasubset(
-					[1, 21],
-			                [15, 20, 25, 30, 40, 50, 60],
-					['realigned']),
-				[6, 17], [3], [25, 30]),
+			pattern = sliceof(realigned, [6, 17], [3], [25, 30]),
 			ext = exts),
 
 		# the more aggressive merging hapchat pipeline only
 		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
-			pattern = postproc(
-				datasubset(
-					[1, 21],
-					[15, 20, 25, 30, 40, 50, 60],
-                                        ['realigned']),
-				[6], [3], [25, 30, 35]),
+			pattern = postproc(realigned, [6], [3], [25, 30, 35]),
 			ext = exts),
 
 # coming up ..
