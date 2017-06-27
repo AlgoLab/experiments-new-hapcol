@@ -529,7 +529,7 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
         msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
     tail()
 
-    table_header = ' '.join(['{},cov={}'.format(short[tool], maxcov)
+    table_header = ' '.join(['{},maxc={}'.format(short[tool], maxcov)
                              for tool in tools
                              for maxcov in maxcovs[tool]])
 
