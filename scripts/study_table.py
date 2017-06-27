@@ -521,7 +521,7 @@ def vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha) :
 def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
 
     head()
-    tools_str = ' vs. '.join(tools)
+    tools_str = ' vs. '.join(['{} ({})'.format(tool, short[tool]) for tool in tools])
     msg(' {} in terms of {}'.format(tools_str, measure_name[measure]))
     msg(' realignment mode = {}'.format(mode))
     if 'HapChat' in tools :
