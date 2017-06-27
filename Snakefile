@@ -4,11 +4,17 @@
 #
 include : 'setup.snake'
 time = '/usr/bin/time'
+timeout = '/usr/bin/timeout'
 compare = 'programs/whatshap/venv/bin/whatshap compare'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
 hapchat = 'programs/balancing-hapcol/build/hapcol'
+hapcol = 'programs/HapCol/build/hapcol'
+
+# limits on memory usage and runtime
+memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
+timelimit = '24h' # 24 hour time limit
 
 # pattern (taking into account hapcol)
 full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}'
@@ -71,6 +77,15 @@ rule master :
 	input :
 		expand('output/whatshap/{pattern}.{ext}',
 			pattern = whatshap(datasets, [15, 20]),
+			ext = exts),
+
+		expand('output/hapcol/{pattern}.{ext}',
+			pattern = whatshap(
+				datasubset(
+					[1, 21],
+					[15, 20, 25, 30, 40, 50, 60],
+					['realigned']),
+				[15, 20, 25]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
@@ -202,6 +217,38 @@ rule run_hapchat :
          -e {params.epsilon} -a {params.alpha} \
          -b {params.balance_cov} -r {params.balance_ratio} \
             > {log.log} 2>&1 '''
+
+#
+# run hapcol on a wif file (from within a script that adapts alpha)
+#----------------------------------------------------------------------
+rule run_hapcol :
+	input :
+		script = 'scripts/run.hapcol.bash',
+		wif = 'wif/' + post_pattern + '.wif'
+
+	output : 'output/hapcol/' + post_pattern + '.hap'
+
+	log :
+		log = 'output/hapcol/' + post_pattern + '.log',
+		time = 'output/hapcol/' + post_pattern + '.time'
+
+	message : '''
+
+   running hapcol on :
+
+   {input.wif}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
+
+	shell : '''
+
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
+      bash {input.script} {hapcol} {input.wif} {output} \
+         > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # compare phased vcfs to true phasing
