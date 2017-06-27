@@ -252,6 +252,10 @@ variant_name = {'mode' : 'realignment mode',
                 'alpha' : 'alpha',
                 'maxcov' : 'final coverage'}
 
+short = {'WhatsHap' : 'WH',
+         'HapCol' : 'HC',
+         'HapChat' : 'HX'}
+
 def variant_vals(tool) :
 
     if tool == 'WhatsHap' :
@@ -449,6 +453,17 @@ def hapcol_measure(measure, step, datum, chr, cov, maxcov) :
     elif measure == 'mem' :
         return hapcol_mem(step, datum, chr, cov, maxcov)
 
+def tool_measure(tool, measure, pipeline, step, datum, chr, cov, mode, maxcov, alpha) :
+
+    if tool == 'HapChat' :
+        t_data = table['HapChat'][datum][chr][cov][mode]
+        return pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha)
+    elif tool == 'WhatsHap' :
+        return whatshap_measure(measure, datum, chr, cov, mode, maxcov)
+    else :
+        assert tool == 'HapCol', 'unknown tool: '+tool
+        return hapcol_measure(measure, step, datum, chr, cov, maxcov)
+
 # compare the different pipelines for hapchat
 #----------------------------------------------------------------------
 def compare_pipelines(measure, step, mode, maxcov, alpha) :
@@ -492,79 +507,45 @@ def vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha) :
             for cov in meancovs :
 
                 row = []
-                col = None
                 for value in variant_vals(tool)[variant] :
                     mode, maxcov, alpha = apply_variant(variant, mode, maxcov, alpha, value)
-
-                    if tool == 'HapChat' :
-                        t_data = table['HapChat'][datum][chr][cov][mode]
-                        col = pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha)
-                    elif tool == 'WhatsHap' :
-                        col = whatshap_measure(measure, datum, chr, cov, mode, maxcov)
-                    else :
-                        assert tool == 'HapCol', 'unknown tool: '+tool
-                        col = hapcol_measure(measure, step, datum, chr, cov, maxcov)
-
+                    col = tool_measure(tool, measure, pipeline, step, datum, chr, cov, mode, maxcov, alpha)
                     row.append(col)
 
                 winline = emph_winners(row)
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
-# how does hapchat compare to whatshap
+# how do tools compare to each other over a set of coverages
 #----------------------------------------------------------------------
-def hapchat_whatshap(measure, pipeline, mode, maxcov, alpha) :
+def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
 
     head()
-    msg(' HapChat vs. WhatsHap in terms of {}'.format(measure_name[measure]))
-    modemax(mode, maxcov)
-    msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
-    msg(' HapChat alpha = {}'.format(alpha))
-    tail()
-
-    print('#dataset HapChat WhatsHap')
-    print()
-    for datum in data :
-        for chr in chrs :
-            for cov in meancovs :
-
-                t_data = table['HapChat'][datum][chr][cov][mode]
-                hc = pipeline_measure(measure, pipeline, 'total', t_data, maxcov, alpha)
-                wh = whatshap_measure(measure,datum,chr,cov,mode,maxcov)
-                winline = emph_winners([hc, wh])
-
-                print('{}.{}.cov{}'.format(datum,chr,cov), winline)
-            print()
-
-# custom hapchat vs. whatshap table
-#----------------------------------------------------------------------
-def custom_hapchat_whatshap(measure, pipeline, mode, alpha) :
-
-    head()
-    msg(' HapChat vs. WhatsHap in terms of {}'.format(measure_name[measure]))
+    tools_str = ' vs. '.join(['{} ({})'.format(tool, short[tool]) for tool in tools])
+    msg(' {} in terms of {}'.format(tools_str, measure_name[measure]))
     msg(' realignment mode = {}'.format(mode))
-    msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
-    msg(' HapChat alpha = {}'.format(alpha))
+    if 'HapChat' in tools :
+        msg(' HapChat alpha = {}'.format(alpha))
+        msg(' HapChat pipeline = {}'.format(pipeline_name[pipeline]))
     tail()
 
-    hc_maxcovs = [25, 30]
-    hc_line = ' '.join(['HC,maxcov={}'.format(maxcov) for maxcov in hc_maxcovs])
-    wh_maxcov = 15
-    print('#dataset', hc_line, 'WH,maxcov={}'.format(wh_maxcov))
+    table_header = ' '.join(['{},maxc={}'.format(short[tool], maxcov)
+                             for tool in tools
+                             for maxcov in maxcovs[tool]])
+
+    print('#dataset', table_header)
     print()
     for datum in data :
         for chr in chrs :
             for cov in meancovs :
 
-                t_data = table['HapChat'][datum][chr][cov][mode]
-                hcs = []
-                for hc_maxcov in hc_maxcovs :
-                    hc = pipeline_measure(measure, pipeline, 'total', t_data, hc_maxcov, alpha)
-                    hcs.append(hc)
+                row = []
+                for tool in tools :
+                    for maxcov in maxcovs[tool] :
+                        col = tool_measure(tool, measure, pipeline, step, datum, chr, cov, mode, maxcov, alpha)
+                        row.append(col)
 
-                wh = whatshap_measure(measure,datum,chr,cov,mode,wh_maxcov)
-                winline = emph_winners(hcs + [wh])
-
+                winline = emph_winners(row)
                 print('{}.{}.cov{}'.format(datum,chr,cov), winline)
             print()
 
@@ -572,16 +553,20 @@ def custom_hapchat_whatshap(measure, pipeline, mode, alpha) :
 #----------------------------------------------------------------------
 
 tool = 'HapChat' # WhatsHap, HapCol, HapChat
-variant = 'alpha' # mode, alpha, maxcov
-measure = 'swerr' # swerr, hamming, time, mem
-pipeline = 'whdowns' # whdowns, merge-t6, merge-t17, rnddowns
+variant = 'maxcov' # mode, alpha, maxcov
+measure = 'time' # swerr, hamming, time, mem
+pipeline = 'rnddowns' # whdowns, merge-t6, merge-t17, rnddowns
 step = 'total' # prep, phasing, total
 mode = 'realigned' # raw, realigned
 maxcov = 20 # 15, 20, 25, 30
 alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
+tools = ['HapChat', 'HapCol', 'WhatsHap']
+maxcovs = {'WhatsHap' : [15], # 15, 20
+           'HapCol' : [15], # 15, 20, 25
+           'HapChat' : [20]} # 15, 20, 25, 30
+
 # tables
 #vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
-#hapchat_whatshap(measure, pipeline, mode, maxcov, alpha)
-#custom_hapchat_whatshap(measure, pipeline, mode, alpha)
+#compare_tools(tools, maxcovs, measure, pipeline, mode, alpha)
