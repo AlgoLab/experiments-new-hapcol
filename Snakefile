@@ -153,13 +153,19 @@ rule run_whatshap :
 
    {input.bam} / {input.vcf}
 
-   selecting coverage down to {wildcards.h} '''
+   selecting coverage down to {wildcards.h}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
 
 	shell : '''
 
-   {time} -v -o {log.time} \
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
       whatshap phase -o {output} {params.realignment} -H {params.h} \
-         {input.vcf} {input.bam} > {log.log} 2>&1 '''
+         {input.vcf} {input.bam} > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # run the core whatshap dp on a wif file
@@ -173,12 +179,23 @@ rule run_core_whatshap :
 		time = 'output/core_wh/' + post_pattern + '.time',
 		wif = 'output/core_wh/' + post_pattern + '.wif'
 
-	message : 'running core whatshap dp on {input}'
+	message : '''
+
+   running core whatshap dp on :
+
+   {input}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
 
 	shell : '''
 
-   {time} -v -o {log.time} \
-      {corewh} -h {output} -a {input} > {log.wif} 2> {log.log} '''
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
+      {corewh} -h {output} -a {input} \
+         > {log.wif} 2> {log.log} || true
+   touch {output} '''
 
 #
 # run hapchat with increase-k and balancing on a wif file
@@ -202,15 +219,25 @@ rule run_hapchat :
 		log = 'output/hapchat/' + full_pattern + '.log',
 		time = 'output/hapchat/' + full_pattern + '.time'
 
-	message : 'running hapchat on {input}'
+	message : '''
+
+   running hapchat on :
+
+   {input}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
 
 	shell : '''
 
-   {time} -v -o {log.time} \
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
       {hapchat} -i {input} -o {output} -A \
          -e {params.epsilon} -a {params.alpha} \
          -b {params.balance_cov} -r {params.balance_ratio} \
-            > {log.log} 2>&1 '''
+            > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # run hapcol on a wif file (from within a script that adapts alpha)
