@@ -89,7 +89,7 @@ rule master :
 			ext = exts),
 
 		expand('output/hapcol/{pattern}.{ext}',
-			pattern = whatshap(realigned, [15, 20, 25]),
+			pattern = whatshap(realigned, [15, 20, 25, 30]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
