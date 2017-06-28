@@ -37,6 +37,10 @@ def load_swerrs(lines) :
 
         swerrs.add(int(b))
 
+    if not swerrs : # bed file is empty, exit quietly
+        print('bed file is empty, exiting ..', file = sys.stderr)
+        exit(0)
+
     return swerrs
 
 #
