@@ -19,6 +19,9 @@ timelimit = '24h' # 24 hour time limit
 # pattern (taking into account hapcol)
 full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}'
 
+# output directory pattern (for all methods that output .hap files)
+outdir_pattern = '{dir,(output/hapchat|output/hapcol|output/core_wh)}'
+
 # epislon / alpha pairs for hapcol, and variants
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
@@ -138,11 +141,11 @@ rule run_whatshap :
 		h = lambda wildcards :
 			'1000' if wildcards.h == 'N' else wildcards.h
 
-	output : 'output/whatshap/' + whatshap_pattern + '.phased.vcf'
+	output : 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.phased.vcf'
 
 	log :
-		log = 'output/whatshap/' + whatshap_pattern + '.log',
-		time = 'output/whatshap/' + whatshap_pattern + '.time'
+		log = 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.log',
+		time = 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.time'
 
 	message : '''
 
@@ -270,13 +273,13 @@ rule compare_vcfs :
 rule phase_vcf :
 	input :
 		script = 'scripts/subvcf.py',
-		hap = '{dir}/' + full_pattern + '.hap',
+		hap = outdir_pattern + '/' + full_pattern + '.hap',
 		blocks = 'wif/' + post_pattern + '.wif.info_/block_sites_',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : '{dir}/' + full_pattern + '.phased.vcf'
+	output : outdir_pattern + '/' + full_pattern + '.phased.vcf'
 
-	log : '{dir}/' + full_pattern + '.phased.vcf.log'
+	log : outdir_pattern + '/' + full_pattern + '.phased.vcf.log'
 
 	message : '''
 
