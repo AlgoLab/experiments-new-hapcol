@@ -27,7 +27,7 @@ ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
 # extensions desired
-exts = ['diff', 'mec', 'sites']
+exts = ['mec', 'sites']
 
 #
 # useful list-defining functions (and lists)
