@@ -283,6 +283,8 @@ rule compare_vcfs :
 		diff = '{dir}/' + full_pattern + '.diff',
 		bed = '{dir}/' + full_pattern + '.bed'
 
+	log : '{dir}/' + full_pattern + '.diff.log'
+
 	message : '''
 
    comparing inferred phasing:
@@ -294,7 +296,9 @@ rule compare_vcfs :
 	shell : '''
 
    {compare} --switch-error-bed {output.bed} \
-      {input.true} {input.vcf} > {output.diff} '''
+      {input.true} {input.vcf} \
+         > {output.diff} 2> {log} || true
+   touch {output} '''
 
 # convert old-skool hap format to a phased vcf
 rule phase_vcf :
@@ -331,6 +335,8 @@ rule mec_score :
 
 	output : '{dir}/' + full_pattern + '.mec'
 
+	log : '{dir}/' + full_pattern + '.mec.log'
+
 	message : '''
 
    infer mec score of:
@@ -341,7 +347,8 @@ rule mec_score :
 
 	shell : '''
 
-   python {input.script} -v {input.vcf} {input.wif} > {output} '''
+   python {input.script} -v {input.vcf} {input.wif} \
+      > {output} 2> {log} '''
 
 #
 # get sitewise details of input/run, e.g., coverage, switch error, etc.
@@ -354,8 +361,11 @@ rule sitewise_details :
 
 	output : '{dir}/' + full_pattern + '.sites'
 
+	log : '{dir}/' + full_pattern + '.sites.log'
+
 	message : 'obtain sitewise details {output}'
 
 	shell : '''
 
-   python {input.script} -s {input.swerrs} {input.sites} > {output} '''
+   python {input.script} -s {input.swerrs} {input.sites} \
+      > {output} 2> {log} '''
