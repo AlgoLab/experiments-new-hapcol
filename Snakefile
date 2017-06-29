@@ -85,26 +85,16 @@ realigned = datasubset(
 rule master :
 	input :
 		expand('output/whatshap/{pattern}.{ext}',
-			pattern = whatshap(datasets, [15, 20]),
+			pattern = whatshap(realigned, [15,20]),
 			ext = exts),
 
 		expand('output/hapcol/{pattern}.{ext}',
-			pattern = whatshap(realigned, [15, 20, 25, 30]),
+			pattern = whatshap(realigned, [15,20,25,30]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
-			pattern = sliceof(datasets, [6, 17], [3], [15, 20]),
-			ea = ea_vals,
-			ext = exts),
-
-		# all 4 hapchat pipelines in the alpha=0.1, realigned case
-		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
-			pattern = sliceof(realigned, [6, 17], [3], [25, 30]),
-			ext = exts),
-
-		# the more aggressive merging hapchat pipeline only
-		expand('output/hapchat/{pattern}.05_1.bN_0.{ext}',
-			pattern = postproc(realigned, [6], [3], [25, 30, 35]),
+			pattern = sliceof(realigned, [6,17], [3], [15,20,30]),
+			ea = ['05_1'],
 			ext = exts),
 
 # coming up ..
