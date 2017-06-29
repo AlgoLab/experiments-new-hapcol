@@ -7,7 +7,7 @@ hap_dir = '/home/prj_rnabwt/haplotyping'
 
 # scripts and programs
 time = '/usr/bin/time'
-whatshap = 'programs/whatshap/venv/bin/whatshap'
+phase = 'programs/whatshap/venv/bin/whatshap phase'
 scripts = ['wiftools.py', 'subvcf.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
@@ -157,7 +157,7 @@ rule get_wif :
 	shell : '''
    
    {time} -v -o {log.time} \
-      {whatshap} phase -o /dev/null {params.realignment} \
+      {phase} -o /dev/null {params.realignment} \
          --output-wif {output} -H {params.h} \
          {input.vcf} {input.bam} > {log.transcript} 2> {log.log} '''
 
