@@ -28,7 +28,7 @@ hs = coverages  # whatshap read selection
 merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
 error_rates = [15]
 max_errs = [25]
-thresholds = [6, 7, 17]
+thresholds = [6, 17]
 neg_threshs = [3]
 mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 	for err in error_rates
