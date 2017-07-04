@@ -114,6 +114,7 @@ rule link_reference :
 rule get_wif :
 	input :
 		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
 		ref = 'reference/human_g1k_v37.fasta'
 
