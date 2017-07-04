@@ -2,7 +2,7 @@
 # for generating all of the data needed for the experiments
 #----------------------------------------------------------------------
 #
-data_dir = '/data/phasing-comparison-experiments'
+data_dir = '/data/phasing-comparison-experiments-hapcol'
 hap_dir = '/home/prj_rnabwt/haplotyping'
 
 # scripts and programs
@@ -16,12 +16,13 @@ data = ['ashk', 'sim']
 platforms = ['pacbio']
 individuals = ['child'] # mother, father, ..
 chromosomes = [1, 21]
-coverages = [15, 20, 25, 30]
-high_coverages = [40, 50, 60]
+coverages = list(range(15, 65, 5)) # 15, 20, .., 60
+chr_covs = {  1 : coverages,
+             21 : list(range(15, 55, 5)) } # just 15, 20, .., 50 for chr21
 
 # whatshap processing
-realignment = ['raw', 'realigned'] # whatshap realignment
-hs = [15, 20, 25, 30, 35, 'N'] # whatshap read selection
+realignment_modes = ['raw', 'realigned'] # whatshap realignment
+hs = coverages  # whatshap read selection
 
 # merging
 merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
@@ -38,7 +39,7 @@ mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 # downsampling to a max coverage (in a random greedy way)
 downsample_pattern = '.downs_s[0-9]+_m[0-9]+'
 seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
-max_covs = [15, 20, 25, 30, 35]
+max_covs = coverages
 downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 	for seed in seeds
 	for max in max_covs] + ['.no_downs']
@@ -53,8 +54,8 @@ post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern +
 datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
 	for data in data
 	for chromosome in chromosomes
-	for coverage in coverages + high_coverages
-	for mode in realignment]
+	for coverage in chr_covs[chromosome]
+	for mode in realignment_modes]
 
 whatshap_downsample = ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
 	for dataset in datasets
@@ -63,7 +64,7 @@ whatshap_downsample = ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h
 post_whatshap = ['{}.hN{}{}.no_merging'.format(dataset, merging, downsampling)
 	for dataset in datasets
 	for merging in mergings
-        for downsampling in downsamplings]
+	for downsampling in downsamplings]
 
 #
 # master rule
