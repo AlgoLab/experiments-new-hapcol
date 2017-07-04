@@ -133,7 +133,10 @@ rule get_wif :
 
 	message : '''
 
-   obtaining wif file {output} from {input.bam} / {input.vcf} pair,
+   obtaining wif file: {output}
+
+   from: {input.bam} / {input.vcf} pair,
+
    after selecting reads down to max coverage {params.h} '''
 
 	shell : '''
@@ -182,8 +185,13 @@ rule downsample :
 
 	message : '''
 
-   psuedorandom downsampling of {input.wif} to coverage {wildcards.max}
-   according to {input.shuf} '''
+   psuedorandom downsampling of: {input.wif}
+
+   to maximum coverage {wildcards.max}, according to:
+
+   {input.shuf}, producing the sample:
+
+   {output} '''
 
 	shell : '''
 
