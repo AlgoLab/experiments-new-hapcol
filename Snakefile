@@ -66,17 +66,16 @@ def sliceof(datasets_, thrs_, negthrs_, maxs_) :
 	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_, True)
 
 # define a subset of the datasets in terms of chromosomes and coverages
-def datasubset(chromosomes_, coverages_, modes_) :
+def datasubset(chr_covs_, modes_) :
 	return ['{}.pacbio.child.chr{}.cov{}.{}'.format(data_, chromosome_, coverage_, mode_)
 		for data_ in data
-		for chromosome_ in chromosomes_
-		for coverage_ in coverages_
+		for chromosome_ in chr_covs_
+		for coverage_ in chr_covs_[chromosome_]
 		for mode_ in modes_]
 
 # since we only tend to run on realigned data
 realigned = datasubset(
-	[1, 21],
-	coverages + high_coverages,
+	chr_covs,
 	['realigned'])
 
 #
@@ -102,16 +101,15 @@ rule next :
 	input :
 		expand('output/core_wh/{pattern}.{ext}',
 			pattern = whatshap(
-				datasubset([21], [5, 10], realignment),
+				datasubset({21:[5,10]}, realignment_modes),
 				[15, 20]),
 			ext = exts),
 
 		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
 			pattern = sliceof(
 				datasubset(
-                                        chromosomes,
-					[5, 10, 15, 20],
-					realignment),
+                                        {1:[5,10,15,20],21:[5,10,15,20]},
+					realignment_modes),
 				[6], [3], [25]),
 			bal = ['bN_0', 'b20_45'],
 			ext = exts)
