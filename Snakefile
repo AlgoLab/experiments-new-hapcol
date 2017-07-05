@@ -26,9 +26,6 @@ outdir_pattern = '{dir,(output/hapchat|output/hapcol|output/core_wh)}'
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
 
-# extensions desired
-exts = ['mec', 'sites']
-
 #
 # useful list-defining functions (and lists)
 #----------------------------------------------------------------------
@@ -83,36 +80,31 @@ realigned = datasubset(
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('output/whatshap/{pattern}.{ext}',
-			pattern = whatshap(realigned, [15,20]),
-			ext = exts),
+		expand('output/whatshap/{pattern}.sum',
+			pattern = whatshap(realigned, [15])),
 
-		expand('output/hapcol/{pattern}.{ext}',
-			pattern = whatshap(realigned, [15,20,25,30]),
-			ext = exts),
+		expand('output/hapcol/{pattern}.sum',
+			pattern = whatshap(realigned, [15])),
 
-		expand('output/hapchat/{pattern}.{ea}.bN_0.{ext}',
-			pattern = sliceof(realigned, [6,17], [3], [15,20,30]),
-			ea = ['05_1'],
-			ext = exts),
+		expand('output/hapchat/{pattern}.{ea}.bN_0.sum',
+			pattern = sliceof(realigned, [6], [3], [15]),
+			ea = ['05_1', '05_01'])
 
 # coming up ..
 rule next :
 	input :
-		expand('output/core_wh/{pattern}.{ext}',
+		expand('output/core_wh/{pattern}.sum',
 			pattern = whatshap(
 				datasubset({21:[5,10]}, realignment_modes),
-				[15, 20]),
-			ext = exts),
+				[15, 20])),
 
-		expand('output/hapchat/{pattern}.05_00001.{bal}.{ext}',
+		expand('output/hapchat/{pattern}.05_00001.{bal}.sum',
 			pattern = sliceof(
 				datasubset(
                                         {1:[5,10,15,20],21:[5,10,15,20]},
 					realignment_modes),
 				[6], [3], [25]),
-			bal = ['bN_0', 'b20_45'],
-			ext = exts)
+			bal = ['bN_0', 'b20_45'])
 
 #
 # run whatshap on a bam / vcf pair
@@ -258,6 +250,35 @@ rule run_hapcol :
       bash {input.script} {hapcol} {input.wif} {output} \
          > {log.log} 2>&1 || true
    touch {output} '''
+
+#
+# rule that asks for all the different results that we want for a run
+#----------------------------------------------------------------------
+rule gather_summary :
+	input :
+		diff = '{dir}/' + full_pattern + '.diff',
+		mec = '{dir}/' + full_pattern + '.mec',
+		sites = '{dir}/' + full_pattern + '.sites'
+
+	output : '{dir}/' + full_pattern + '.sum'
+
+	message : '''
+
+   gather summary from:
+
+   {input.diff}
+
+   and:
+
+   {input.mec} '''
+
+	shell : '''
+
+   grep -m 1 "switch error rate:" {input.diff} > {output}
+   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output}
+   cat {input.mec} | \
+      awk '{{ print "                            "$1" "$2"  "$3 }}' \
+         >> {output} '''
 
 #
 # compare phased vcfs to true phasing
