@@ -131,7 +131,7 @@ def main():
 
                 out.write("HapChat,")                
                 num_inck += 1
-                qual = getQUAL(args.inck_dir + ds + '.diff')
+                qual = getQUAL(args.inck_dir + dataset + '.diff')
                 tfile = args.inck_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
                     logging.error("File not found: %s", tfile)
@@ -216,7 +216,7 @@ def main():
 
                 out.write("WhatsHap,")
                 num_wh += 1
-                qual = getQUAL(args.wh_dir + ds + '.diff')
+                qual = getQUAL(args.wh_dir + dataset + '.diff')
                 tfile = args.wh_dir + dataset + ".time"
                 if not os.path.isfile(tfile):
                     logging.error("File not found: %s", tfile)
@@ -275,7 +275,7 @@ def main():
 
                 out.write('HapCol,')
                 num_hc += 1
-                qual = getQUAL(args.hc_dir + ds + '.diff')
+                qual = getQUAL(args.hc_dir + dataset + '.diff')
                 tfile = args.hc_dir + dataset + '.time'
                 if not os.path.isfile(tfile) :
                     logging.error('File not found: %s', tfile)
