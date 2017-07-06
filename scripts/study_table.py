@@ -9,7 +9,8 @@ print('number of columns:', ncols, file = sys.stderr)
 tools = 'HapChat WhatsHap HapCol'.split()
 data = 'ashk sim'.split()
 chrs = 'chr1 chr21'.split()
-meancovs = '15 20 25 30 40 50 60'.split()
+meancovs = ['{}'.format(c) for c in range(15, 65, 5)]
+chr_covs = { 'chr1' : meancovs, 'chr21' : meancovs[:-2] }
 modes = 'raw realigned'.split()
 whdowns = 'N 15 20 25 30'.split()
 no_merging = 'no NA NA NA NA'
@@ -17,7 +18,7 @@ mergings = [no_merging,
             'yes 0.15 0.25 1e+6 1e+3',
             'yes 0.15 0.25 1e+17 1e+3']
 no_downs = 'no NA NA'
-rnddowns = [no_downs] + ['yes 1 {}'.format(maxcov) for maxcov in whdowns[1:]]
+rnddowns = [no_downs] + ['yes 1 {}'.format(m) for m in whdowns[1:]]
 alphas = 'NA 0.1 0.01 0.001 0.0001 0.00001'.split()
 no_beta = 'NA NA'
 null_beta = 'N 0'
@@ -106,7 +107,7 @@ for line in entree :
     assert tool in tools, 'unknown Tool: '+tool
     assert datum in data, 'unknown Data: '+datum
     assert chr in chrs, 'unknown Chr: '+chr
-    assert cov in meancovs, 'unknown MeanCov: '+cov
+    assert cov in chr_covs[chr], 'unknown MeanCov {} for chr {}'.format(cov, chr)
     assert mode in modes, 'unknown RawRealigned'+mode
     assert whdown in whdowns, 'unknown WhDowns: '+whdown
     assert merging in mergings, 'unknown merging: '+merging
@@ -122,61 +123,49 @@ for line in entree :
 print('read {} entries'.format(count - 1), file = sys.stderr)
 
 # test if table is complete
-hccount = 0
+hxmaxs = '15 20 25'.split()
+whmaxs = '15'.split()
+hcmaxs = '15'.split()
+
+hxcount = 0
 whcount = 0
-hlcount = 0
+hccount = 0
 for datum in data :
     for chr in chrs :
-        for cov in meancovs :
-            for mode in modes :
-                dataset = '{}.{}.cov{}.{}'.format(datum,chr,cov,mode)
-                t_hc = table['HapChat'][datum][chr][cov][mode]
+        for cov in chr_covs[chr] :
+                dataset = '{}.{}.cov{}.realigned'.format(datum,chr,cov)
+                t_hx = table['HapChat'][datum][chr][cov]['realigned']
 
-                for whdown in whdowns[1:] :
-                    for alpha in alphas[1:] :
-                        if whdown in whdowns[-2:] : # high covs for alpha=0.1, realigned only
-                            if mode != 'realigned' :
-                                continue
-                            if alpha != '0.1' :
-                                continue
+                for whdown in hxmaxs :
+                    for alpha in ['0.1', '0.01'] :
+                        assert t_hx[whdown][no_merging][no_downs][alpha][null_beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
+                        hxcount += 1
 
-                        for beta in betas[1:] :
-                            assert t_hc[whdown][no_merging][no_downs][alpha][beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
-                            hccount += 1
-
-                    if whdown in whdowns[-1] : # no highest cov for HapCol
+                    if whdown not in hcmaxs :
                         continue
 
-                    t_hl = table['HapCol'][datum][chr][cov]['realigned'][whdown]
-                    assert t_hl[no_merging][no_downs]['NA'][no_beta], 'no record for HapCol, dataset: {}, WhDowns: {}'.format(dataset, whdown)
-                    if mode == 'realigned' :
-                        hlcount += 1
+                    t_hc = table['HapCol'][datum][chr][cov]['realigned'][whdown]
+                    assert t_hc[no_merging][no_downs]['NA'][no_beta], 'no record for HapCol, dataset: {}, WhDowns: {}'.format(dataset, whdown)
+                    hccount += 1
 
-                    if whdown in whdowns[-2:] : # no high covs for whatsHap
+                    if whdown in whmaxs :
                         continue
 
-                    t_wh = table['WhatsHap'][datum][chr][cov][mode][whdown]
+                    t_wh = table['WhatsHap'][datum][chr][cov]['realigned'][whdown]
                     assert t_wh[no_merging][no_downs]['NA'][no_beta], 'no record for WhatsHap, dataset: {}, WhDowns: {}'.format(dataset, whdown)
                     whcount += 1
 
-                for merging in mergings :
-                    for rnddown in rnddowns[1:] :
-                        t_m = t_hc['N'][merging][rnddown]
+                for merging in mergings[:-1] :
+                    for rnddown in rnddowns[1:-1] :
+                        t_m = t_hx['N'][merging][rnddown]
 
-                        for alpha in alphas[1:] :
-                            if rnddown in rnddowns[-2:] : # high covs for alpha=0.1, realigned only
-                                if mode != 'realigned' :
-                                    continue
-                                if alpha != '0.1' :
-                                    continue
-
-                            for beta in betas[1:] :
-                                assert t_m[alpha][beta], 'no record for HapChat, dataset: {}, merge: {}, random downsample: {}, Alpha: {}'.format(dataset, merging, rnddown, alpha)
-                                hccount += 1
+                        for alpha in ['0.1', '0.01'] :
+                            assert t_m[alpha][null_beta], 'no record for HapChat, dataset: {}, merge: {}, random downsample: {}, Alpha: {}'.format(dataset, merging, rnddown, alpha)
+                            hxcount += 1
 
 print('number of WhatsHap records:', whcount, file = sys.stderr)
-print('number of HapCol records:', hlcount, file = sys.stderr)
-print('number of HapChat records:', hccount, file = sys.stderr)
+print('number of HapCol records:', hccount, file = sys.stderr)
+print('number of HapChat records:', hxcount, file = sys.stderr)
 
 # aux functions
 #----------------------------------------------------------------------
@@ -219,11 +208,10 @@ def emph_winners(values) :
 
 # some preamble for the display of the data
 #----------------------------------------------------------------------
-pipelines = 'whdowns merge-t6 merge-t17 rnddowns'.split()
+pipelines = 'whdowns merge-t6 rnddowns'.split()
 
 pipeline_name = {'whdowns' : 'whatshap downsampling',
                  'merge-t6' : 'merging threshold 6',
-                 'merge-t17' : 'merging threshold 17',
                  'rnddowns' : 'random downsampling'}
 
 measures = 'swerr hamming time mem'.split()
@@ -260,18 +248,18 @@ def variant_vals(tool) :
 
     if tool == 'WhatsHap' :
         return {'mode' : modes,
-                'alpha' : alphas[:1],
-                'maxcov' : whdowns[1:-2]}
+                'alpha' : [],
+                'maxcov' : whmaxs}
 
     elif tool == 'HapCol' :
         return {'mode' : ['realigned'],
-                'alpha' : alphas[:1],
-                'maxcov' : whdowns[1:-1]}
+                'alpha' : ['0.01'],
+                'maxcov' : hcmaxs}
 
     elif tool == 'HapChat' :
         return {'mode' : modes,
-                'alpha' : alphas[1:],
-                'maxcov' : whdowns[1:]}
+                'alpha' : ['0.1', '0.01'],
+                'maxcov' : hxmaxs}
 
 def apply_variant(variant, mode, maxcov, alpha, value) :
 
@@ -323,8 +311,6 @@ def pipeline_record(pipeline, t_data, maxcov, alpha) :
         return t_data[str(maxcov)][no_merging][no_downs][alpha][null_beta]
     elif pipeline == 'merge-t6' :
         return t_data['N'][mergings[1]]['yes 1 {}'.format(maxcov)][alpha][null_beta]
-    elif pipeline == 'merge-t17' :
-        return t_data['N'][mergings[2]]['yes 1 {}'.format(maxcov)][alpha][null_beta]
     elif pipeline == 'rnddowns' :
         return t_data['N'][no_merging]['yes 1 {}'.format(maxcov)][alpha][null_beta]
     else :
@@ -338,7 +324,7 @@ def pipeline_time(pipeline, step, t_data, maxcov, alpha) :
 
     if pipeline == 'whdowns' :
         times = [record['WhDownsTimeSec']]
-    elif pipeline in 'merge-t6 merge-t17'.split() :
+    elif pipeline in 'merge-t6'.split() :
         times = [record['MergeTimeSec'], record['RndDownsTimeSec']]
     elif pipeline == 'rnddowns' :
         times = [record['RndDownsTimeSec']]
@@ -362,7 +348,7 @@ def pipeline_mem(pipeline, step, t_data, maxcov, alpha) :
 
     if pipeline == 'whdowns' :
         mems = ['?'] # unsupported at the moment
-    elif pipeline in 'merge-t6 merge-t17'.split() :
+    elif pipeline in 'merge-t6'.split() :
         mems = [record['MergeMaxMemMB'], record['RndDownsMaxMemMB']]
     elif pipeline == 'rnddowns' :
         mems = [record['RndDownsMaxMemMB']]
@@ -478,7 +464,7 @@ def compare_pipelines(measure, step, mode, maxcov, alpha) :
     print()
     for datum in data :
         for chr in chrs :
-            for cov in meancovs :
+            for cov in chr_covs[chr] :
 
                 t_data = table['HapChat'][datum][chr][cov][mode]
                 row = []
@@ -504,7 +490,7 @@ def vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha) :
     print()
     for datum in data :
         for chr in chrs :
-            for cov in meancovs :
+            for cov in chr_covs[chr] :
 
                 row = []
                 for value in variant_vals(tool)[variant] :
@@ -537,7 +523,7 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
     print()
     for datum in data :
         for chr in chrs :
-            for cov in meancovs :
+            for cov in chr_covs[chr] :
 
                 row = []
                 for tool in tools :
@@ -554,19 +540,19 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
 
 tool = 'HapChat' # WhatsHap, HapCol, HapChat
 variant = 'maxcov' # mode, alpha, maxcov
-measure = 'time' # swerr, hamming, time, mem
-pipeline = 'rnddowns' # whdowns, merge-t6, merge-t17, rnddowns
+measure = 'swerr' # swerr, hamming, time, mem
+pipeline = 'whdowns' # whdowns, merge-t6, rnddowns
 step = 'total' # prep, phasing, total
 mode = 'realigned' # raw, realigned
 maxcov = 20 # 15, 20, 25, 30
-alpha = '0.1' # 0.1, 0.01, 0.001, 0.0001, 0.00001
+alpha = '0.01' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 tools = ['HapChat', 'HapCol', 'WhatsHap']
-maxcovs = {'WhatsHap' : [15], # 15, 20
-           'HapCol' : [15], # 15, 20, 25
-           'HapChat' : [20]} # 15, 20, 25, 30
+maxcovs = {'WhatsHap' : whmaxs, # 15, 20
+           'HapCol' : hcmaxs, # 15, 20, 25
+           'HapChat' : hxmaxs} # 15, 20, 25, 30
 
 # tables
 #vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
-#compare_tools(tools, maxcovs, measure, pipeline, mode, alpha)
+compare_tools(tools, maxcovs, measure, pipeline, mode, alpha)
