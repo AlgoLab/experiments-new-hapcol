@@ -113,7 +113,7 @@ def main():
                 downs = ['downs_s1_m{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
                     continue
-                if ds[6] not in hs :
+                if ds[6] not in hs + ['hN'] :
                     continue
                 if ds[7] not in mergings + ['no_merging'] :
                     continue
