@@ -60,7 +60,7 @@ def getTimeMem(log_file):
         return info
 
 def main():
-    coverages = ['cov{}'.format(c) for c in '15 20 25 30 40 50 60'.split()]
+    coverages = ['cov{}'.format(c) for c in range(15, 65, 5)]
     mergings = ['merged_e15_m25_t{}_n3'.format(t) for t in '6 17'.split()]
 
     parser = argparse.ArgumentParser(prog = "preparePlot",
@@ -104,26 +104,21 @@ def main():
         num_inck = 0
         logging.info("Parsing Inck files")
         for df in os.listdir(args.inck_dir):
-            if df.endswith(".bN_0.diff"):
+            if df.endswith(".bN_0.sum"):
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
-                hi_hs = ['h25', 'h30']
-                hi_ms = ['downs_s1_m25', 'downs_s1_m30']
+                maxcovs = [15, 20, 25]
+                hs = ['h{}'.format(m) for m in maxcovs]
+                downs = ['downs_s1_m{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
                     continue
-                if ds[6] not in ["hN", "h15", "h20"] + hi_hs :
+                if ds[6] not in hs :
                     continue
                 if ds[7] not in mergings + ['no_merging'] :
                     continue
-                if ds[8] not in ["no_downs", "downs_s1_m15", "downs_s1_m20"] + hi_ms :
+                if ds[8] not in downs + ["no_downs"] :
                     continue
-
-                if ds[6] in hi_hs or ds[8] in hi_ms :
-                    if ds[5] != 'realigned' :
-                        continue
-                    if ds[10] != '05_1' :
-                        continue
 
                 whdataset = ".".join(ds[:7])+".wif"
                 whdownstime = "NA"
@@ -208,11 +203,15 @@ def main():
         num_wh = 0
         logging.info("Parsing WhatsHap files")
         for df in os.listdir(args.wh_dir):
-            if df.endswith(".diff"):
+            if df.endswith(".sum"):
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
+                maxcovs = [15]
+                hs = ['h{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
+                    continue
+                if ds[6] not in hs :
                     continue
 
                 out.write("WhatsHap,")
@@ -255,12 +254,16 @@ def main():
         num_hc = 0
         logging.info('Parsing HapCol files')
         for df in os.listdir(args.hc_dir) :
-            if df.endswith('.diff') :
+            if df.endswith('.sum') :
                 ds = df.rstrip().split('.')[:-1]
                 dataset = '.'.join(ds)
 
                 # filter
+                maxcovs = [15]
+                hs = ['h{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
+                    continue
+                if ds[6] not in hs :
                     continue
 
                 whdataset = '.'.join(ds[:7]) + '.wif'
