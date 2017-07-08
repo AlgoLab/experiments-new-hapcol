@@ -124,8 +124,8 @@ print('read {} entries'.format(count - 1), file = sys.stderr)
 
 # test if table is complete
 hxmaxs = '15 20 25'.split()
-whmaxs = '15'.split()
-hcmaxs = '15'.split()
+whmaxs = '15 20'.split()
+hcmaxs = '15 20 25'.split()
 
 hxcount = 0
 whcount = 0
@@ -148,7 +148,7 @@ for datum in data :
                     assert t_hc[no_merging][no_downs]['NA'][no_beta], 'no record for HapCol, dataset: {}, WhDowns: {}'.format(dataset, whdown)
                     hccount += 1
 
-                    if whdown in whmaxs :
+                    if whdown not in whmaxs :
                         continue
 
                     t_wh = table['WhatsHap'][datum][chr][cov]['realigned'][whdown]
