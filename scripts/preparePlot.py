@@ -207,7 +207,7 @@ def main():
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
-                maxcovs = [15]
+                maxcovs = [15, 20]
                 hs = ['h{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
                     continue
@@ -259,7 +259,7 @@ def main():
                 dataset = '.'.join(ds)
 
                 # filter
-                maxcovs = [15]
+                maxcovs = [15, 20, 25]
                 hs = ['h{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
                     continue
