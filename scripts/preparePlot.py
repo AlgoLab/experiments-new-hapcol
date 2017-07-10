@@ -33,7 +33,7 @@ def getMEC(mec_file):
 
 
 def getQUAL(diff_file):
-    qual = {'ser' : '-', 'ham' : '-'}}
+    qual = {'ser' : '-', 'ham' : '-'}
     with open(diff_file, 'r') as d:
         nl = 0
         for l in d.readlines():
@@ -108,7 +108,7 @@ def main():
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
-                maxcovs = [15, 20, 25]
+                maxcovs = [15, 20, 25, 30]
                 hs = ['h{}'.format(m) for m in maxcovs]
                 downs = ['downs_s1_m{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
@@ -259,7 +259,7 @@ def main():
                 dataset = '.'.join(ds)
 
                 # filter
-                maxcovs = [15, 20, 25]
+                maxcovs = [15, 20, 25, 30]
                 hs = ['h{}'.format(m) for m in maxcovs]
                 if ds[4] not in coverages :
                     continue
