@@ -6,7 +6,7 @@ import argparse
 import logging
 
 def getWhInfo(wh_log_file):
-    info = {}
+    info = {'score' : '-', 'downs' : '-', 'time' : '-'}
     with open(wh_log_file, 'r') as whlog:
         for line in whlog.readlines():
             if line.startswith("MEC cost:"):
@@ -29,11 +29,11 @@ def getScore(log_file):
 def getMEC(mec_file):
     with open(mec_file, 'r') as mf:
         line = mf.readline().rstrip()
-        return line.split(":")[1].replace(" ", "")
+        return line.split(":")[1].replace(" ", "") if line else '-'
 
 
 def getQUAL(diff_file):
-    qual = {}
+    qual = {'ser' : '-', 'ham' : '-'}}
     with open(diff_file, 'r') as d:
         nl = 0
         for l in d.readlines():
@@ -45,7 +45,7 @@ def getQUAL(diff_file):
     return qual
 
 def getTimeMem(log_file):
-    info = {}
+    info = {'time' : '-', 'mem' : '-'}
     with open(log_file, 'r') as lf:
         for line in lf.readlines():
             line = line.strip()
