@@ -274,8 +274,8 @@ rule gather_summary :
 
 	shell : '''
 
-   grep -m 1 "switch error rate:" {input.diff} > {output}
-   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output}
+   grep -m 1 "switch error rate:" {input.diff} > {output} || true
+   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output} || true
    cat {input.mec} | \
       awk '{{ print "                            "$1" "$2"  "$3 }}' \
          >> {output} '''
