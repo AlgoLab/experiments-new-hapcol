@@ -31,7 +31,6 @@ def getMEC(mec_file):
         line = mf.readline().rstrip()
         return line.split(":")[1].replace(" ", "") if line else '-'
 
-
 def getQUAL(diff_file):
     qual = {'ser' : '-', 'ham' : '-'}
     with open(diff_file, 'r') as d:
@@ -58,6 +57,13 @@ def getTimeMem(log_file):
             if line.startswith("Maximum resident set size"):
                 info["mem"] = int(line.split(":")[1])/(1024)#*1024)
         return info
+
+def getFeasibility(logfile) :
+    with open(logfile,'r') as lines :
+        for line in lines :
+            if line.startswith(' --- no solution at alpha = 1e-2') :
+                return 'no'
+    return 'yes'
 
 def main():
     coverages = ['cov{}'.format(c) for c in range(15, 65, 5)]
@@ -99,12 +105,14 @@ def main():
         out.write(",RndDowns,RndDownsSeed,RndDownsMaxCov,RndDownsTimeSec,RndDownsMaxMemMB")
         out.write(",FurtherMerging,Epsilon,Alpha,BalThr,BalRatio")
         out.write(",SwErrRatePerc,HamDistPerc,MecScore,PhasTimeSec,PhasMaxMemMB")
+        out.write(",CleanFinish,FeasibleSoln")
         out.write("\n")
         # Hapchat
         num_inck = 0
         logging.info("Parsing Inck files")
         for df in os.listdir(args.inck_dir):
             if df.endswith(".bN_0.sum"):
+                cleanfinish = 'yes' if os.stat(args.inck_dir+df).st_size else 'no'
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
@@ -196,7 +204,8 @@ def main():
                           qual["ham"] + "," +
                           str(score) + "," +
                           str(info["time"]) + "," +
-                          str(info["mem"]))
+                          str(info["mem"]) + ',' +
+                          cleanfinish + ',yes')
                 out.write("\n")
         logging.info("Parsed %d Inck files.", num_inck)
         # WhatsHap
@@ -204,6 +213,7 @@ def main():
         logging.info("Parsing WhatsHap files")
         for df in os.listdir(args.wh_dir):
             if df.endswith(".sum"):
+                cleanfinish = 'yes' if os.stat(args.wh_dir+df).st_size else 'no'
                 ds = df.rstrip().split(".")[:-1]
                 dataset = ".".join(ds)
                 # filter
@@ -245,7 +255,8 @@ def main():
                           qual["ham"] + "," +
                           score + "," +
                           str(wh_info["time"]) + "," +
-                          str(info["mem"]))
+                          str(info["mem"]) + ',' +
+                          cleanfinish + ',yes')
                 out.write("\n")
                 
         logging.info("Parsed %d WhatsHap files.", num_wh)
@@ -255,6 +266,7 @@ def main():
         logging.info('Parsing HapCol files')
         for df in os.listdir(args.hc_dir) :
             if df.endswith('.sum') :
+                cleanfinish = 'yes' if os.stat(args.hc_dir+df).st_size else 'no'
                 ds = df.rstrip().split('.')[:-1]
                 dataset = '.'.join(ds)
 
@@ -286,6 +298,11 @@ def main():
                     logging.error('File not found: %s', lfile)
                     exit()
                 score = getMEC(lfile)
+                logfile = args.hc_dir + dataset + '.log'
+                if not os.path.isfile(logfile) :
+                    logging.error('File not found: %s', logfile)
+                    exit()
+                feasible = getFeasibility(logfile)
                 out.write(','.join(ds[0:4]) + ',' +
                           ds[4].replace('cov', '') + ',' +
                           ds[5] + ',' +
@@ -299,7 +316,8 @@ def main():
                           qual['ham'] + ',' +
                           score + ',' +
                           str(info['time']) + ',' +
-                          str(info['mem']))
+                          str(info['mem']) + ',' +
+                          cleanfinish + ',' + feasible)
                 out.write('\n')
 
         logging.info('Parsed %d HapCol files.', num_hc)
