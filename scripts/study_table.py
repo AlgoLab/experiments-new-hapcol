@@ -2,7 +2,7 @@ import sys
 
 # setup
 #----------------------------------------------------------------------
-columns = 'Tool Data Technology Individual Chr MeanCov RawRealigned WhDowns WhDownsTimeSec Merge MergeE MergeM MergeT MergeN MergeTimeSec MergeMaxMemMB RndDowns RndDownsSeed RndDownsMaxCov RndDownsTimeSec RndDownsMaxMemMB FurtherMerging Epsilon Alpha BalThr BalRatio SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB'.split()
+columns = 'Tool Data Technology Individual Chr MeanCov RawRealigned WhDowns WhDownsTimeSec Merge MergeE MergeM MergeT MergeN MergeTimeSec MergeMaxMemMB RndDowns RndDownsSeed RndDownsMaxCov RndDownsTimeSec RndDownsMaxMemMB FurtherMerging Epsilon Alpha BalThr BalRatio SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB CleanFinish FeasibleSoln'.split()
 ncols = len(columns)
 print('number of columns:', ncols, file = sys.stderr)
 
@@ -232,7 +232,7 @@ def step_name(tool, measure, step) :
         return 'preprocessing '
     return step+' '
 
-nonvalues = '? _'.split()
+nonvalues = '? -'.split()
 
 variants = 'mode alpha maxcov'.split()
 
@@ -338,6 +338,8 @@ def pipeline_time(pipeline, step, t_data, maxcov, alpha) :
     else :
         assert step == 'prep', 'unknown step: '+step
 
+    if '-' in times :
+        return '-'
     return '{:.3f}'.format(sum([float(time) for time in times]))
 
 def pipeline_mem(pipeline, step, t_data, maxcov, alpha) :
@@ -362,6 +364,8 @@ def pipeline_mem(pipeline, step, t_data, maxcov, alpha) :
     else :
         assert step == 'prep', 'unknown step: '+step
 
+    if '-' in mems :
+        return '-'
     if '?' in mems :
         return '?'
     return '{:.3f}'.format(max([float(mem) for mem in mems]))
@@ -386,6 +390,8 @@ def whatshap_time(datum, chr, cov, mode, maxcov) :
     record = whatshap_record(datum, chr, cov, mode, maxcov)
     times = [record['WhDownsTimeSec'], record['PhasTimeSec']]
 
+    if '-' in times :
+        return '-'
     return '{:.3f}'.format(sum([float(time) for time in times]))
 
 def whatshap_measure(measure, datum, chr, cov, mode, maxcov) :
@@ -416,12 +422,17 @@ def hapcol_time(step, datum, chr, cov, maxcov) :
     else :
         assert step == 'prep', 'unknown step: '+step
 
+    if '-' in times :
+        return '-'
     return '{:.3f}'.format(sum([float(time) for time in times]))
 
 def hapcol_mem(step, datum, chr, cov, maxcov) :
     record = hapcol_record(datum, chr, cov, maxcov)
 
     if step == 'phasing' :
+        mem = record['PhasMaxMemMB']
+        if mem == '-' :
+            return '-'
         return '{:.3f}'.format(float(record['PhasMaxMemMB']))
     elif step in ['prep', 'total'] :
         return '?'
@@ -449,6 +460,43 @@ def tool_measure(tool, measure, pipeline, step, datum, chr, cov, mode, maxcov, a
     else :
         assert tool == 'HapCol', 'unknown tool: '+tool
         return hapcol_measure(measure, step, datum, chr, cov, maxcov)
+
+# clear some fields in the table, based on other fields
+def clear_fields(clearinfeasible, clearunfinished = True) :
+
+    non_parameters = 'WhDownsTimeSec MergeTimeSec MergeMaxMemMB RndDownsTimeSec RndDownsMaxMemMB SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB'.split()
+
+    for tool in table :
+        t_tool = table[tool]
+        for datum in t_tool :
+            t_datum = t_tool[datum]
+            for chr in t_datum :
+                t_chr = t_datum[chr]
+                for cov in t_chr :
+                    t_cov = t_chr[cov]
+                    for mode in t_cov :
+                        t_mode = t_cov[mode]
+                        for whdown in t_mode :
+                            t_whdown = t_mode[whdown]
+                            for merging in t_whdown :
+                                t_merging = t_whdown[merging]
+                                for rnddown in t_merging :
+                                    t_rnddown = t_merging[rnddown]
+                                    for alpha in t_rnddown :
+                                        t_alpha = t_rnddown[alpha]
+                                        for beta in t_alpha :
+                                            t_beta = t_alpha[beta]
+                                            if(t_beta) :
+
+                                                if(clearunfinished) :
+                                                    if t_beta['CleanFinish'] == 'no' :
+                                                        for field in non_parameters :
+                                                            t_beta[field] = '-'
+
+                                                if(clearinfeasible) :
+                                                    if t_beta['FeasibleSoln'] == 'no' :
+                                                        for field in non_parameters :
+                                                            t_beta[field] = '-'
 
 # compare the different pipelines for hapchat
 #----------------------------------------------------------------------
@@ -541,18 +589,21 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha) :
 tool = 'HapChat' # WhatsHap, HapCol, HapChat
 variant = 'maxcov' # mode, alpha, maxcov
 measure = 'swerr' # swerr, hamming, time, mem
-pipeline = 'whdowns' # whdowns, merge-t6, rnddowns
+pipeline = 'merge-t6' # whdowns, merge-t6, rnddowns
 step = 'total' # prep, phasing, total
 mode = 'realigned' # raw, realigned
-maxcov = 20 # 15, 20, 25, 30
+maxcov = 30 # 15, 20, 25, 30
 alpha = '0.01' # 0.1, 0.01, 0.001, 0.0001, 0.00001
 
 tools = ['HapChat', 'HapCol', 'WhatsHap']
 maxcovs = {'WhatsHap' : whmaxs, # 15, 20
-           'HapCol' : hcmaxs, # 15, 20, 25
+           'HapCol' : hcmaxs, # 15, 20, 25, 30
            'HapChat' : hxmaxs} # 15, 20, 25, 30
+
+clearinfeasible = True # True, False
+clear_fields(clearinfeasible)
 
 # tables
 #vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
-compare_tools(tools, maxcovs, measure, pipeline, mode, alpha)
+#compare_tools(tools, maxcovs, measure, pipeline, mode, alpha)
