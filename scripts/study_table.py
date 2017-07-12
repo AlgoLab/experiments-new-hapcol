@@ -123,9 +123,9 @@ for line in entree :
 print('read {} entries'.format(count - 1), file = sys.stderr)
 
 # test if table is complete
-hxmaxs = '15 20 25'.split()
+hxmaxs = '15 20 25 30'.split()
 whmaxs = '15 20'.split()
-hcmaxs = '15 20 25'.split()
+hcmaxs = '15 20 25 30'.split()
 
 hxcount = 0
 whcount = 0
@@ -156,7 +156,7 @@ for datum in data :
                     whcount += 1
 
                 for merging in mergings[:-1] :
-                    for rnddown in rnddowns[1:-1] :
+                    for rnddown in rnddowns[1:] :
                         t_m = t_hx['N'][merging][rnddown]
 
                         for alpha in ['0.1', '0.01'] :
