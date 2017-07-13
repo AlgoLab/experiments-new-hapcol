@@ -1,5 +1,11 @@
 import sys
 
+# to change as more data arrives
+hxmaxs = '15 20 25'.split()
+hxas = '0.1 0.01 0.001'.split()
+whmaxs = '15 20'.split()
+hcmaxs = '15 20 25 30'.split()
+
 # setup
 #----------------------------------------------------------------------
 columns = 'Tool Data Technology Individual Chr MeanCov RawRealigned WhDowns WhDownsTimeSec Merge MergeE MergeM MergeT MergeN MergeTimeSec MergeMaxMemMB RndDowns RndDownsSeed RndDownsMaxCov RndDownsTimeSec RndDownsMaxMemMB FurtherMerging Epsilon Alpha BalThr BalRatio SwErrRatePerc HamDistPerc MecScore PhasTimeSec PhasMaxMemMB CleanFinish FeasibleSoln'.split()
@@ -12,13 +18,14 @@ chrs = 'chr1 chr21'.split()
 meancovs = ['{}'.format(c) for c in range(15, 65, 5)]
 chr_covs = { 'chr1' : meancovs, 'chr21' : meancovs[:-2] }
 modes = 'raw realigned'.split()
-whdowns = 'N 15 20 25 30'.split()
+maxcovs = '15 20 25 30'.split()
+whdowns = maxcovs + ['N']
 no_merging = 'no NA NA NA NA'
 mergings = [no_merging,
             'yes 0.15 0.25 1e+6 1e+3',
             'yes 0.15 0.25 1e+17 1e+3']
 no_downs = 'no NA NA'
-rnddowns = [no_downs] + ['yes 1 {}'.format(m) for m in whdowns[1:]]
+rnddowns = [no_downs] + ['yes 1 {}'.format(m) for m in maxcovs]
 alphas = 'NA 0.1 0.01 0.001 0.0001 0.00001'.split()
 no_beta = 'NA NA'
 null_beta = 'N 0'
@@ -123,10 +130,6 @@ for line in entree :
 print('read {} entries'.format(count - 1), file = sys.stderr)
 
 # test if table is complete
-hxmaxs = '15 20 25 30'.split()
-whmaxs = '15 20'.split()
-hcmaxs = '15 20 25 30'.split()
-
 hxcount = 0
 whcount = 0
 hccount = 0
@@ -136,30 +139,28 @@ for datum in data :
                 dataset = '{}.{}.cov{}.realigned'.format(datum,chr,cov)
                 t_hx = table['HapChat'][datum][chr][cov]['realigned']
 
-                for whdown in hxmaxs :
-                    for alpha in ['0.1', '0.01'] :
-                        assert t_hx[whdown][no_merging][no_downs][alpha][null_beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
-                        hxcount += 1
+                for whdown in maxcovs :
 
-                    if whdown not in hcmaxs :
-                        continue
+                    if whdown in hxmaxs :
+                        for alpha in hxas :
+                            assert t_hx[whdown][no_merging][no_downs][alpha][null_beta], 'no record for HapChat, dataset: {}, WhDowns: {}, Alpha: {}'.format(dataset, whdown, alpha)
+                            hxcount += 1
 
-                    t_hc = table['HapCol'][datum][chr][cov]['realigned'][whdown]
-                    assert t_hc[no_merging][no_downs]['NA'][no_beta], 'no record for HapCol, dataset: {}, WhDowns: {}'.format(dataset, whdown)
-                    hccount += 1
+                    if whdown in hcmaxs :
+                        t_hc = table['HapCol'][datum][chr][cov]['realigned'][whdown]
+                        assert t_hc[no_merging][no_downs]['NA'][no_beta], 'no record for HapCol, dataset: {}, WhDowns: {}'.format(dataset, whdown)
+                        hccount += 1
 
-                    if whdown not in whmaxs :
-                        continue
-
-                    t_wh = table['WhatsHap'][datum][chr][cov]['realigned'][whdown]
-                    assert t_wh[no_merging][no_downs]['NA'][no_beta], 'no record for WhatsHap, dataset: {}, WhDowns: {}'.format(dataset, whdown)
-                    whcount += 1
+                    if whdown in whmaxs :
+                        t_wh = table['WhatsHap'][datum][chr][cov]['realigned'][whdown]
+                        assert t_wh[no_merging][no_downs]['NA'][no_beta], 'no record for WhatsHap, dataset: {}, WhDowns: {}'.format(dataset, whdown)
+                        whcount += 1
 
                 for merging in mergings[:-1] :
-                    for rnddown in rnddowns[1:] :
+                    for rnddown in ['yes 1 {}'.format(m) for m in hxmaxs] :
                         t_m = t_hx['N'][merging][rnddown]
 
-                        for alpha in ['0.1', '0.01'] :
+                        for alpha in hxas :
                             assert t_m[alpha][null_beta], 'no record for HapChat, dataset: {}, merge: {}, random downsample: {}, Alpha: {}'.format(dataset, merging, rnddown, alpha)
                             hxcount += 1
 
@@ -592,13 +593,13 @@ measure = 'swerr' # swerr, hamming, time, mem
 pipeline = 'merge-t6' # whdowns, merge-t6, rnddowns
 step = 'total' # prep, phasing, total
 mode = 'realigned' # raw, realigned
-maxcov = 30 # 15, 20, 25, 30
-alpha = '0.01' # 0.1, 0.01, 0.001, 0.0001, 0.00001
+maxcov = 30 # 15, 20, 25, ..
+alpha = '0.001' # 0.1, 0.01, 0.001, 0.0001, ..
 
 tools = ['HapChat', 'HapCol', 'WhatsHap']
-maxcovs = {'WhatsHap' : whmaxs, # 15, 20
-           'HapCol' : hcmaxs, # 15, 20, 25, 30
-           'HapChat' : hxmaxs} # 15, 20, 25, 30
+maxcovs = {'WhatsHap' : whmaxs,
+           'HapCol' : hcmaxs,
+           'HapChat' : hxmaxs}
 
 clearinfeasible = True # True, False
 clear_fields(clearinfeasible)
