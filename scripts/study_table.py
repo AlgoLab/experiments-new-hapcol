@@ -248,7 +248,7 @@ short = {'WhatsHap' : 'WH',
 def variant_vals(tool) :
 
     if tool == 'WhatsHap' :
-        return {'mode' : modes,
+        return {'mode' : ['realigned'],
                 'alpha' : [],
                 'maxcov' : whmaxs}
 
@@ -258,8 +258,8 @@ def variant_vals(tool) :
                 'maxcov' : hcmaxs}
 
     elif tool == 'HapChat' :
-        return {'mode' : modes,
-                'alpha' : ['0.1', '0.01'],
+        return {'mode' : ['realigned'],
+                'alpha' : hxas,
                 'maxcov' : hxmaxs}
 
 def apply_variant(variant, mode, maxcov, alpha, value) :
