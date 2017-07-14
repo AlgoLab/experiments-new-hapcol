@@ -8,6 +8,7 @@ hap_dir = '/home/prj_rnabwt/haplotyping'
 # scripts and programs
 time = '/usr/bin/time'
 phase = 'programs/whatshap/venv/bin/whatshap phase'
+extract_hairs = 'programs/hapcut/extractHAIRS'
 scripts = ['wiftools.py', 'subvcf.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
@@ -23,6 +24,9 @@ chr_covs = {  1 : coverages,
 # whatshap processing
 realignment_modes = ['raw', 'realigned'] # whatshap realignment
 hs = coverages  # whatshap read selection
+
+# hapcut modes
+indelmodes = ['indels', 'noindels']
 
 # merging
 merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
@@ -48,6 +52,7 @@ downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
 whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
+hapcut_pattern = dataset_pattern + '.{indelsornot,(indels|noindels)}'
 post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern + ')}{downsample,(.no_downs|' + downsample_pattern + ')}{mergeafter,(.no_merging|' + merge_pattern + ')}'
 
 # common lists
@@ -56,6 +61,12 @@ datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, 
 	for chromosome in chromosomes
 	for coverage in chr_covs[chromosome]
 	for mode in realignment_modes]
+
+hapcut_hairs = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
+	for data in data
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]
+	for mode in indelmodes]
 
 whatshap_downsample = ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
 	for dataset in datasets
@@ -73,6 +84,9 @@ rule setup :
 	input :
 		expand('wif/{pattern}.wif.info_/block_sites_',
 			pattern = whatshap_downsample + post_whatshap),
+
+		expand('hairs/{pattern}.txt',
+			pattern = hapcut_hairs),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
 			data = data,
@@ -145,6 +159,38 @@ rule get_wif :
       {phase} -o /dev/null {params.realignment} \
          --output-wif {output} -H {params.h} \
          {input.vcf} {input.bam} > {log.transcript} 2> {log.log} '''
+
+#
+# obtain a hairs file from a bam / vcf pair using hapcut extract hairs
+#----------------------------------------------------------------------
+rule get_hairs :
+	input :
+		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
+
+	params : lambda wildcards :
+		'--indels 1' if wildcards.indelsornot == 'indels' else ''
+
+	output : 'hairs/' + hapcut_pattern + '.txt'
+
+	log :
+		log = 'hairs/' + hapcut_pattern + '.log',
+		time = 'hairs/' + hapcut_pattern + '.time'
+
+	message : '''
+
+   obtaining hairs file: {output}
+
+   from: {input.bam} / {input.vcf} pair '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {extract_hairs} --ref {input.ref} {params} \
+         --VCF {input.vcf} --bam {input.bam} --maxIS 600 \
+            > {output} 2> {log.log} '''
 
 #
 # downsample a wif file to a specified max coverage
