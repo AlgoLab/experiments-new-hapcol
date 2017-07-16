@@ -30,16 +30,11 @@ ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001'
 # useful list-defining functions (and lists)
 #----------------------------------------------------------------------
 
-# downsampling to a specified list of max coverages
-def downs(maxs_) :
-	return ['.downs_s{}_m{}'.format(seed_, max_)
-		for seed_ in seeds
-		for max_ in maxs_]
-
 # datasets processed by whatshap to a specified list of max cov.
-def whatshap(datasets_, maxs_) :
-	return ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset_, h_)
+def whatshap(datasets_, modes_, maxs_) :
+	return ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset_, mode_, h_)
 		for dataset_ in datasets_
+		for mode_ in modes_
 		for h_ in maxs_]
 
 # partial paramerization of a merging (threshold and neg. threshold)
@@ -50,30 +45,31 @@ def merging(thrs_, negthrs_) :
 		for thresh_ in thrs_
 		for neg_ in negthrs_]
 
+# downsampling to a specified list of max coverages
+def downs(maxs_) :
+	return ['.downs_s{}_m{}'.format(seed_, max_)
+		for seed_ in seeds
+		for max_ in maxs_]
+
 # datasets postprocessed to a specified list of max cov
-def postproc(datasets_, thrs_, negthrs_, maxs_, rnddowns = False) :
+def postproc(datasets_, modes_, thrs_, negthrs_, maxs_, rnddowns = False) :
 	only_rnddowns = ['.no_merging'] if rnddowns else []
-	return ['{}.hN{}{}.no_merging'.format(dataset_, merging_, downsampling_)
+	return ['{}.{}.hN{}{}.no_merging'.format(dataset_, mode_, merging_, downsampling_)
 		for dataset_ in datasets_
+		for mode_ in modes_
 		for merging_ in merging(thrs_, negthrs_) + only_rnddowns
 		for downsampling_ in downs(maxs_)]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
-def sliceof(datasets_, thrs_, negthrs_, maxs_) :
-	return whatshap(datasets_, maxs_) + postproc(datasets_, thrs_, negthrs_, maxs_, True)
+def sliceof(datasets_, modes_, thrs_, negthrs_, maxs_) :
+	return whatshap(datasets_, modes_, maxs_) + postproc(datasets_, modes_, thrs_, negthrs_, maxs_, True)
 
 # define a subset of the datasets in terms of chromosomes and coverages
-def datasubset(chr_covs_, modes_) :
-	return ['{}.pacbio.child.chr{}.cov{}.{}'.format(data_, chromosome_, coverage_, mode_)
+def datasubset(chr_covs_) :
+	return ['{}.pacbio.child.chr{}.cov{}'.format(data_, chromosome_, coverage_)
 		for data_ in data
 		for chromosome_ in chr_covs_
-		for coverage_ in chr_covs_[chromosome_]
-		for mode_ in modes_]
-
-# since we only tend to run on realigned data
-realigned = datasubset(
-	chr_covs,
-	['realigned'])
+		for coverage_ in chr_covs_[chromosome_]]
 
 #
 # master rule
@@ -81,29 +77,34 @@ realigned = datasubset(
 rule master :
 	input :
 		expand('output/whatshap/{pattern}.sum',
-			pattern = whatshap(realigned, [15])),
+			pattern = whatshap(datasets, ['realigned'],
+				[15,20])),
 
 		expand('output/hapcol/{pattern}.sum',
-			pattern = whatshap(realigned, [15])),
+			pattern = whatshap(datasets, ['realigned'],
+				[15,20,25,30])),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.sum',
-			pattern = sliceof(realigned, [6], [3], [15]),
-			ea = ['05_1', '05_01'])
+			pattern = sliceof(datasets, ['realigned'], [6], [3],
+				[15,20,25,30]),
+			ea = ['05_1', '05_01', '05_001']),
 
 # coming up ..
 rule next :
 	input :
 		expand('output/core_wh/{pattern}.sum',
 			pattern = whatshap(
-				datasubset({21:[5,10]}, realignment_modes),
+				datasubset(
+					{21:[5,10]}),
+				['realigned'],
 				[15, 20])),
 
 		expand('output/hapchat/{pattern}.05_00001.{bal}.sum',
 			pattern = sliceof(
 				datasubset(
-                                        {1:[5,10,15,20],21:[5,10,15,20]},
-					realignment_modes),
-				[6], [3], [25]),
+                                        {1:[5,10,15,20],21:[5,10,15,20]}),
+				['realigned'], [6], [3],
+				[25]),
 			bal = ['bN_0', 'b20_45'])
 
 #

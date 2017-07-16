@@ -51,29 +51,24 @@ downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
-whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
 hapcut_pattern = dataset_pattern + '.{indelsornot,(indels|noindels)}'
+whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
 post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern + ')}{downsample,(.no_downs|' + downsample_pattern + ')}{mergeafter,(.no_merging|' + merge_pattern + ')}'
 
 # common lists
-datasets = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
+datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
 	for data in data
 	for chromosome in chromosomes
-	for coverage in chr_covs[chromosome]
-	for mode in realignment_modes]
+	for coverage in chr_covs[chromosome]]
 
-hapcut_hairs = ['{}.pacbio.child.chr{}.cov{}.{}'.format(data, chromosome, coverage, mode)
-	for data in data
-	for chromosome in chromosomes
-	for coverage in chr_covs[chromosome]
-	for mode in indelmodes]
-
-whatshap_downsample = ['{}.h{}.no_merging.no_downs.no_merging'.format(dataset, h)
+whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
 	for dataset in datasets
+	for mode in realignment_modes
 	for h in hs]
 
-post_whatshap = ['{}.hN{}{}.no_merging'.format(dataset, merging, downsampling)
+post_whatshap = ['{}.{}.hN{}{}.no_merging'.format(dataset, mode, merging, downsampling)
 	for dataset in datasets
+	for mode in realignment_modes
 	for merging in mergings
 	for downsampling in downsamplings]
 
@@ -85,8 +80,9 @@ rule setup :
 		expand('wif/{pattern}.wif.info_/block_sites_',
 			pattern = whatshap_downsample + post_whatshap),
 
-		expand('hairs/{pattern}.txt',
-			pattern = hapcut_hairs),
+		expand('hairs/{pattern}.{mode}.txt',
+			pattern = datasets,
+			mode = indelmodes),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
 			data = data,
