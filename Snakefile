@@ -11,6 +11,7 @@ compare = 'programs/whatshap/venv/bin/whatshap compare'
 corewh = 'programs/core_whatshap/build/dp'
 hapchat = 'programs/balancing-hapcol/build/hapcol'
 hapcol = 'programs/HapCol/build/hapcol'
+hapcut2 = 'programs/HapCUT2/build/HAPCUT2'
 
 # limits on memory usage and runtime
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
@@ -251,6 +252,36 @@ rule run_hapcol :
       bash {input.script} {hapcol} {input.wif} {output} \
          > {log.log} 2>&1 || true
    touch {output} '''
+
+#
+# run hapcut2 on a hairs file
+#----------------------------------------------------------------------
+rule run_hapcut2 :
+	input :
+		txt = 'hairs/' + hapcut_pattern + '.txt',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
+
+	output :
+		'output/hapcut2/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindesl)}.txt'
+
+	log :
+		log = 'output/hapcut2/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
+		time = 'output/hapcut2/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+
+	message : '''
+
+   running hapcut2 on hairs file: {input.txt}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
+
+	shell : '''
+
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
+      {hapcut2} --fragments {input.txt} --VCF {input.vcf} \
+         --output {output} &> {log.log} '''
 
 #
 # rule that asks for all the different results that we want for a run
