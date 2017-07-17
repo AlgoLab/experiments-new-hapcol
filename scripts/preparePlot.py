@@ -80,6 +80,8 @@ def main():
                         required = False, dest = 'wh_dir')
     parser.add_argument('-c', '--hapcol', help = 'HapCol dir.',
                         required = False, dest = 'hc_dir')
+    parser.add_argument('-u', '--hapcut2', help = 'HapCUT2 dir.',
+                        required = False, dest = 'hapcut2_dir')
     parser.add_argument('-o', '--out-file', help = "CSV output file.",
                         required = True, dest = 'out_file')
     parser.add_argument('-v', '--verbose',
@@ -103,7 +105,7 @@ def main():
         out.write("Tool,Data,Technology,Individual,Chr,MeanCov,RawRealigned,WhDowns,WhDownsTimeSec")
         out.write(",Merge,MergeE,MergeM,MergeT,MergeN,MergeTimeSec,MergeMaxMemMB")
         out.write(",RndDowns,RndDownsSeed,RndDownsMaxCov,RndDownsTimeSec,RndDownsMaxMemMB")
-        out.write(",FurtherMerging,Epsilon,Alpha,BalThr,BalRatio")
+        out.write(",FurtherMerging,Epsilon,Alpha,BalThr,BalRatio,IndelMode")
         out.write(",SwErrRatePerc,HamDistPerc,MecScore,PhasTimeSec,PhasMaxMemMB")
         out.write(",CleanFinish,FeasibleSoln")
         out.write("\n")
@@ -200,6 +202,7 @@ def main():
                           "0." + ds[10].split("_")[1] + "," +
                           ds[11].split("_")[0][1:] + "," +
                           ds[11].split("_")[1] + "," +
+                          'NA,' +
                           qual["ser"] + "," +
                           qual["ham"] + "," +
                           str(score) + "," +
@@ -250,7 +253,7 @@ def main():
                           "no,NA,NA,NA,NA,NA,NA" + "," +
                           "no,NA,NA,NA,NA" + "," +
                           "no,NA,NA" + "," +
-                          "NA,NA" + "," +
+                          "NA,NA,NA" + "," +
                           qual["ser"] + "," +
                           qual["ham"] + "," +
                           score + "," +
@@ -311,7 +314,7 @@ def main():
                           'no,NA,NA,NA,NA,NA,NA,' +
                           'no,NA,NA,NA,NA,' +
                           'no,NA,NA,' +
-                          'NA,NA,' +
+                          'NA,NA,NA,' +
                           qual['ser'] + ',' +
                           qual['ham'] + ',' +
                           score + ',' +
@@ -321,6 +324,51 @@ def main():
                 out.write('\n')
 
         logging.info('Parsed %d HapCol files.', num_hc)
+
+        # HapCUT2
+        num_hapcut2 = 0
+        logging.info('Parsing HapCUT2 files')
+        for df in os.listdir(args.hapcut2_dir) :
+            if df.endswith('.sum') :
+                cleanfinish = 'yes' if os.stat(args.hapcut2_dir+df).st_size else 'no'
+                ds = df.rstrip().split('.')[:-1]
+                dataset = '.'.join(ds)
+
+                # filter
+                if ds[4] not in coverages :
+                    continue
+
+                out.write('HapCUT2,')
+                num_hapcut2 += 1
+
+                qual = getQUAL(args.hapcut2_dir + dataset + '.diff')
+                tfile = args.hapcut2_dir + dataset + '.time'
+                if not os.path.isfile(tfile) :
+                    logging.error('file not found: %s', tfile)
+                    exit()
+                info = getTimeMem(tfile)
+                msfile = args.hapcut2_dir + dataset + '.mec'
+                if not os.path.isfile(msfile) :
+                    logging.error('file not found: %s', msfile)
+                    exit()
+                score = getMEC(msfile)
+                indelmode = 'yes' if ds[10] == 'indels' else 'no'
+                out.write(','.join(ds[0:4]) + ',' +
+                          ds[4].replace('cov','') + ',' +
+                          ds[5] + ',' +
+                          ds[6].replace('h','') + ',' +
+                          'NA,' +
+                          'no,NA,NA,NA,NA,NA,NA,' +
+                          'no,NA,NA,NA,NA,' +
+                          'no,NA,NA,' +
+                          'NA,NA,' +
+                          indelmode + ',' +
+                          qual['ser'] + ',' + qual['ham'] + ',' +
+                          str(score) + ',' +
+                          str(info['time']) + ',' + str(info['mem']) + ',' +
+                          cleanfinish + ',yes')
+                out.write('\n')
+        logging.info('Parsed %d HapCUT2 files.', num_hapcut2)
 
     logging.info("Program Finshed")
 
