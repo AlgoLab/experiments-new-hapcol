@@ -14,18 +14,20 @@ parameters
 import sys
 
 #
-# load sites and per-site coverage
+# load sites with per-site coverage and bridge coverage
 def load_sites(lines) :
 
     site_cov = {}
+    site_brcov = {}
     for line in lines :
         if line.startswith('#') :
             continue
 
-        a,b,c = line.split()
+        a,b,c,d = line.split()
         site_cov[int(a)] = int(b)
+        site_brcov[int(a)] = int(d)
 
-    return site_cov
+    return site_cov, site_brcov
 
 #
 # load per-site switch error from .bed file
@@ -62,7 +64,7 @@ while i < len(a) : # bash-style argparse
         else :
             assert False, usage
     else :
-        site_cov = load_sites(open(a[i],'r'))
+        site_cov, site_brcov = load_sites(open(a[i],'r'))
 
     i += 1 # shift once by default
 
@@ -70,8 +72,8 @@ while i < len(a) : # bash-style argparse
 # MAIN
 #----------------------------------------------------------------------
 
-print('#site', 'coverage', 'swerr', sep = '\t')
+print('#site', 'coverage', 'bridgecov', 'swerr', sep = '\t')
 for site in sorted(site_cov) :
 
     swerr = 1 if site in swerrs else 0
-    print(site, site_cov[site], swerr, sep = '\t')
+    print(site, site_cov[site], site_brcov[site], swerr, sep = '\t')
