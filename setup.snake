@@ -22,7 +22,7 @@ chr_covs = {  1 : coverages,
              21 : list(range(15, 55, 5)) } # just 15, 20, .., 50 for chr21
 
 # whatshap processing
-realignment_modes = ['raw', 'realigned'] # whatshap realignment
+modes = ['raw', 'realigned'] # whatshap realignment
 hs = coverages  # whatshap read selection
 
 # hapcut modes
@@ -63,12 +63,12 @@ datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
 
 whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
 	for dataset in datasets
-	for mode in realignment_modes
+	for mode in modes
 	for h in hs]
 
 post_whatshap = ['{}.{}.hN{}{}.no_merging'.format(dataset, mode, merging, downsampling)
 	for dataset in datasets
-	for mode in realignment_modes
+	for mode in modes
 	for merging in mergings
 	for downsampling in downsamplings]
 

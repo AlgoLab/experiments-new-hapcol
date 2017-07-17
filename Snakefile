@@ -89,7 +89,7 @@ rule master :
 				[15,20])),
 
 		expand('output/hapcol/{pattern}.sum',
-			pattern = whatshap(datasets, ['realigned'],
+			pattern = whatshap(datasets, modes,
 				[15,20,25,30])),
 
 		expand('output/hapchat/{pattern}.{ea}.bN_0.sum',
