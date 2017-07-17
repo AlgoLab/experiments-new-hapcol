@@ -6,6 +6,7 @@ include : 'setup.snake'
 time = '/usr/bin/time'
 timeout = '/usr/bin/timeout'
 compare = 'programs/whatshap/venv/bin/whatshap compare'
+hapcut2vcf = 'programs/whatshap/venv/bin/whatshap hapcut2vcf'
 
 # softwares
 corewh = 'programs/core_whatshap/build/dp'
@@ -17,8 +18,8 @@ hapcut2 = 'programs/HapCUT2/build/HAPCUT2'
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
 timelimit = '24h' # 24 hour time limit
 
-# pattern (taking into account hapcol)
-full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}'
+# pattern (taking into account all input/output types)
+full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
 
 # output directory pattern (for all methods that output .hap files)
 outdir_pattern = '{dir,(output/hapchat|output/hapcol|output/core_wh)}'
@@ -61,6 +62,12 @@ def postproc(datasets_, modes_, thrs_, negthrs_, maxs_, rnddowns = False) :
 		for merging_ in merging(thrs_, negthrs_) + only_rnddowns
 		for downsampling_ in downs(maxs_)]
 
+# datasets processed by hapcut2 (just a shortcut, really)
+def hapcut2(datasets_, modes_) :
+	return ['{}.raw.hN.no_merging.no_downs.no_merging.{}'.format(dataset_, mode_)
+		for dataset_ in datasets_
+		for mode_ in modes_]
+
 # datasets both processed by whatshap and postprocessed to list of max cov.
 def sliceof(datasets_, modes_, thrs_, negthrs_, maxs_) :
 	return whatshap(datasets_, modes_, maxs_) + postproc(datasets_, modes_, thrs_, negthrs_, maxs_, True)
@@ -89,6 +96,9 @@ rule master :
 			pattern = sliceof(datasets, ['realigned'], [6], [3],
 				[15,20,25,30]),
 			ea = ['05_1', '05_01', '05_001']),
+
+		expand('output/hapcut2/{pattern}.sum',
+			pattern = hapcut2(datasets, indelmodes))
 
 # coming up ..
 rule next :
@@ -364,6 +374,22 @@ rule phase_vcf :
 
    python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
       > {output} 2> {log} '''
+
+# convert hapcut2 output to (phased) vcf
+rule hapcut2_to_vcf :
+	input :
+		txt = 'output/hapcut2/' + full_pattern + '.txt',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
+
+	output : 'output/hapcut2/' + full_pattern + '.phased.vcf'
+
+	log : 'output/hapcut2/' + full_pattern + '.phased.vcf.log'
+
+	message : 'converting hapcut {input} to {output}'
+
+	shell : '''
+
+   {hapcut2vcf} {input.vcf} {input.txt} > {output} 2> {log} '''
 
 #
 # compute MEC score of phased vcf wrt instance, as a wif file
