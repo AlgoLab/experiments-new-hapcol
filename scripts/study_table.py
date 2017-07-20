@@ -665,6 +665,10 @@ maxcovs = {'WhatsHap' : whmaxs,
 clearinfeasible = False # True, False
 clear_fields(clearinfeasible)
 
+# redefine in order to display a subset
+meancovs = ['{}'.format(c) for c in range(25, 65, 5)]
+chr_covs = { 'chr1' : meancovs, 'chr21' : meancovs[:-2] }
+
 # tables
 #vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha, indelmode)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
