@@ -341,6 +341,11 @@ def display_invariant(tool, variant, mode, maxcov, alpha, indelmode) :
 
 # some shortcuts in the table, etc.
 #----------------------------------------------------------------------
+def form(entry) :
+    if entry in nonvalues :
+        return entry
+    return '{:.{prec}f}'.format(float(entry), prec = precision)
+
 def pipeline_record(pipeline, t_data, maxcov, alpha) :
 
     if pipeline == 'whdowns' :
@@ -376,7 +381,7 @@ def pipeline_time(pipeline, step, t_data, maxcov, alpha) :
 
     if '-' in times :
         return '-'
-    return '{:.3f}'.format(sum([float(time) for time in times]))
+    return form(sum([float(time) for time in times]))
 
 def pipeline_mem(pipeline, step, t_data, maxcov, alpha) :
 
@@ -404,14 +409,14 @@ def pipeline_mem(pipeline, step, t_data, maxcov, alpha) :
         return '-'
     if '?' in mems :
         return '?'
-    return '{:.3f}'.format(max([float(mem) for mem in mems]))
+    return form(max([float(mem) for mem in mems]))
 
 def pipeline_measure(measure, pipeline, step, t_data, maxcov, alpha) :
 
     if measure == 'swerr' :
-        return pipeline_record(pipeline, t_data, maxcov, alpha)['SwErrRatePerc']
+        return form(pipeline_record(pipeline, t_data, maxcov, alpha)['SwErrRatePerc'])
     elif measure == 'hamming' :
-        return pipeline_record(pipeline, t_data, maxcov, alpha)['HamDistPerc']
+        return form(pipeline_record(pipeline, t_data, maxcov, alpha)['HamDistPerc'])
     elif measure == 'time' :
         return pipeline_time(pipeline, step, t_data, maxcov, alpha)
     elif measure == 'mem' :
@@ -428,14 +433,14 @@ def whatshap_time(datum, chr, cov, mode, maxcov) :
 
     if '-' in times :
         return '-'
-    return '{:.3f}'.format(sum([float(time) for time in times]))
+    return form(sum([float(time) for time in times]))
 
 def whatshap_measure(measure, datum, chr, cov, mode, maxcov) :
 
     if measure == 'swerr' :
-        return whatshap_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc']
+        return form(whatshap_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc'])
     elif measure == 'hamming' :
-        return whatshap_record(datum, chr, cov, mode, maxcov)['HamDistPerc']
+        return form(whatshap_record(datum, chr, cov, mode, maxcov)['HamDistPerc'])
     elif measure == 'time' :
         return whatshap_time(datum, chr, cov, mode, maxcov)
     elif measure == 'mem' :
@@ -460,16 +465,13 @@ def hapcol_time(step, datum, chr, cov, mode, maxcov) :
 
     if '-' in times :
         return '-'
-    return '{:.3f}'.format(sum([float(time) for time in times]))
+    return form(sum([float(time) for time in times]))
 
 def hapcol_mem(step, datum, chr, cov, mode, maxcov) :
     record = hapcol_record(datum, chr, cov, mode, maxcov)
 
     if step == 'phasing' :
-        mem = record['PhasMaxMemMB']
-        if mem == '-' :
-            return '-'
-        return '{:.3f}'.format(float(record['PhasMaxMemMB']))
+        return form(float(record['PhasMaxMemMB']))
     elif step in ['prep', 'total'] :
         return '?'
     else :
@@ -478,9 +480,9 @@ def hapcol_mem(step, datum, chr, cov, mode, maxcov) :
 def hapcol_measure(measure, step, datum, chr, cov, mode, maxcov) :
 
     if measure == 'swerr' :
-        return hapcol_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc']
+        return form(hapcol_record(datum, chr, cov, mode, maxcov)['SwErrRatePerc'])
     elif measure == 'hamming' :
-        return hapcol_record(datum, chr, cov, mode, maxcov)['HamDistPerc']
+        return form(hapcol_record(datum, chr, cov, mode, maxcov)['HamDistPerc'])
     elif measure == 'time' :
         return hapcol_time(step, datum, chr, cov, mode, maxcov)
     elif measure == 'mem' :
@@ -493,13 +495,13 @@ def hapcut2_measure(measure, datum, chr, cov, indelmode) :
     record = hapcut2_record(datum, chr, cov, indelmode)
 
     if measure == 'swerr' :
-        return record['SwErrRatePerc']
+        return form(record['SwErrRatePerc'])
     elif measure == 'hamming' :
-        return record['HamDistPerc']
+        return form(record['HamDistPerc'])
     elif measure == 'time' :
-        return '{:.3f}'.format(float(record['PhasTimeSec']))
+        return form(float(record['PhasTimeSec']))
     elif measure == 'mem' :
-        return record['PhasMaxMemMB']
+        return form(record['PhasMaxMemMB'])
     else :
         assert False, 'unknown measure '+measure
 
@@ -646,6 +648,7 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha, indelmode) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
+precision = 2 # 2, 3, 4, ..
 tool = 'HapChat' # WhatsHap, HapCol, HapChat, HapCUT2
 variant = 'alpha' # mode, alpha, maxcov, indelmode
 measure = 'swerr' # swerr, hamming, time, mem
