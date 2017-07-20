@@ -625,11 +625,11 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha, indelmode) :
         msg(' HapCUT2 indelmode = {}'.format(indelmode))
     tail()
 
-    table_header = ' '.join(['{},maxc={}'.format(short[tool], maxcov)
+    table_header = ' '.join(['{}-{}'.format(short[tool], maxcov)
                              for tool in tools
                              for maxcov in maxcovs[tool]])
 
-    print('#dataset', table_header)
+    print('#Data\Tool-MaxC', table_header)
     print()
     for datum in data :
         for chr in chrs :
@@ -648,7 +648,7 @@ def compare_tools(tools, maxcovs, measure, pipeline, mode, alpha, indelmode) :
 # add your own stuff here ...
 #----------------------------------------------------------------------
 
-precision = 2 # 2, 3, 4, ..
+precision = 3 # 2, 3, 4, ..
 tool = 'HapChat' # WhatsHap, HapCol, HapChat, HapCUT2
 variant = 'alpha' # mode, alpha, maxcov, indelmode
 measure = 'swerr' # swerr, hamming, time, mem
@@ -661,8 +661,8 @@ indelmode = 'no' # yes, no
 
 tools = ['HapChat', 'HapCol', 'WhatsHap', 'HapCUT2']
 maxcovs = {'WhatsHap' : whmaxs,
-           'HapCol' : hcmaxs,
-           'HapChat' : hxmaxs,
+           'HapCol' : [25,30],
+           'HapChat' : [25,30],
            'HapCUT2' : ['N']}
 
 clearinfeasible = False # True, False
@@ -675,4 +675,4 @@ chr_covs = { 'chr1' : meancovs, 'chr21' : meancovs[:-2] }
 # tables
 #vary_param(tool, variant, measure, pipeline, step, mode, maxcov, alpha, indelmode)
 #compare_pipelines(measure, step, mode, maxcov, alpha)
-#compare_tools(tools, maxcovs, measure, pipeline, mode, alpha, indelmode)
+compare_tools(tools, maxcovs, measure, pipeline, mode, alpha, indelmode)
