@@ -86,7 +86,7 @@ rule master :
 	input :
 		expand('output/whatshap/{pattern}.sum',
 			pattern = whatshap(datasets, ['realigned'],
-				[15,20])),
+				[15, 20, 25])),
 
 		expand('output/hapcol/{pattern}.sum',
 			pattern = whatshap(datasets, modes,
