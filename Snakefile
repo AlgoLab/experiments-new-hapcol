@@ -89,13 +89,12 @@ rule master :
 				[15, 20, 25])),
 
 		expand('output/hapcol/{pattern}.sum',
-			pattern = whatshap(datasets, modes,
-				[15,20,25,30])),
+			pattern = whatshap(datasets, ['raw'],
+				[15, 20, 25, 30])),
 
-		expand('output/hapchat/{pattern}.{ea}.bN_0.sum',
-			pattern = sliceof(datasets, ['realigned'], [6], [3],
-				[15,20,25,30]),
-			ea = ['05_1', '05_01', '05_001']),
+		expand('output/hapchat/{pattern}.05_01.bN_0.sum',
+			pattern = postproc(datasets, ['realigned'], [6], [3],
+				[15, 20, 25, 30])),
 
 		expand('output/hapcut2/{pattern}.sum',
 			pattern = hapcut2(datasets, indelmodes))

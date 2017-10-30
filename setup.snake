@@ -16,14 +16,17 @@ scripts_regex = '('+'|'.join([s for s in scripts])+')'
 data = ['ashk', 'sim']
 platforms = ['pacbio']
 individuals = ['child'] # mother, father, ..
-chromosomes = [1, 21]
-coverages = list(range(15, 65, 5)) # 15, 20, .., 60
-chr_covs = {  1 : coverages,
-             21 : list(range(15, 55, 5)) } # just 15, 20, .., 50 for chr21
+chromosomes = [1] # 21, ..
+coverages = list(range(25, 65, 5)) # 25, 30, .., 60
+max_covs = list(range(15, 40, 5))
+chr_covs = {
+	1 : coverages,
+	21 : coverages[:-2]
+} # just 15, 20, .., 50 for chr21
 
 # whatshap processing
 modes = ['raw', 'realigned'] # whatshap realignment
-hs = coverages  # whatshap read selection
+hs = max_covs  # whatshap read selection
 
 # hapcut modes
 indelmodes = ['indels', 'noindels']
@@ -32,7 +35,7 @@ indelmodes = ['indels', 'noindels']
 merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
 error_rates = [15]
 max_errs = [25]
-thresholds = [6, 17]
+thresholds = [6] # 17, ..
 neg_threshs = [3]
 mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 	for err in error_rates
@@ -43,7 +46,6 @@ mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 # downsampling to a max coverage (in a random greedy way)
 downsample_pattern = '.downs_s[0-9]+_m[0-9]+'
 seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
-max_covs = coverages
 downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 	for seed in seeds
 	for max in max_covs] + ['.no_downs']
