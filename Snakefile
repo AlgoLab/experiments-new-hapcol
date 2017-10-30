@@ -92,9 +92,10 @@ rule master :
 			pattern = whatshap(datasets, ['raw'],
 				[15, 20, 25, 30])),
 
-		expand('output/hapchat/{pattern}.05_01.bN_0.sum',
+		expand('output/hapchat/{pattern}.05_01.bN_0.{ext}',
 			pattern = postproc(datasets, ['realigned'], [6], [3],
-				[15, 20, 25, 30])),
+				[15, 20, 25, 30]),
+			ext = ['sum', 'inc']),
 
 		expand('output/hapcut2/{pattern}.sum',
 			pattern = hapcut2(datasets, indelmodes))
@@ -435,3 +436,19 @@ rule sitewise_details :
 
    python {input.script} -s {input.swerrs} {input.sites} \
       > {output} 2> {log} '''
+
+#
+# get details on increasing k from a hapchat log file
+#----------------------------------------------------------------------
+rule increments :
+	input :
+		script = 'scripts/increments.py',
+		logfile = 'output/hapchat/' + full_pattern + '.log'
+
+	output : 'output/hapchat/' + full_pattern + '.inc'
+
+	log : 'output/hapchat/' + full_pattern + '.inc.log'
+
+	message : 'obtain details on increasing k from {input.logfile}'
+
+	shell : 'python {input.script} {input.logfile} > {output} 2> {log}'
