@@ -205,10 +205,11 @@ rule run_hapchat :
 		balance_ratio = lambda wildcards :
 			'0.' + wildcards.balancing.split('_')[1]
 
-	output : 'output/hapchat/' + full_pattern + '.hap'
+	output :
+		hap = 'output/hapchat/' + full_pattern + '.hap',
+		log = 'output/hapchat/' + full_pattern + '.log',
 
 	log :
-		log = 'output/hapchat/' + full_pattern + '.log',
 		time = 'output/hapchat/' + full_pattern + '.time'
 
 	message : '''
@@ -225,10 +226,10 @@ rule run_hapchat :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      {hapchat} -i {input} -o {output} -A \
+      {hapchat} -i {input} -o {output.hap} -A \
          -e {params.epsilon} -a {params.alpha} \
          -b {params.balance_cov} -r {params.balance_ratio} \
-            > {log.log} 2>&1 || true
+            > {output.log} 2>&1 || true
    touch {output} '''
 
 #
@@ -443,12 +444,12 @@ rule sitewise_details :
 rule increments :
 	input :
 		script = 'scripts/increments.py',
-		logfile = 'output/hapchat/' + full_pattern + '.log'
+		log = 'output/hapchat/' + full_pattern + '.log'
 
 	output : 'output/hapchat/' + full_pattern + '.inc'
 
 	log : 'output/hapchat/' + full_pattern + '.inc.log'
 
-	message : 'obtain details on increasing k from {input.logfile}'
+	message : 'obtain details on increasing k from {input.log}'
 
-	shell : 'python {input.script} {input.logfile} > {output} 2> {log}'
+	shell : 'python {input.script} {input.log} > {output} 2> {log}'
