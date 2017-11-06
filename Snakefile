@@ -94,7 +94,7 @@ rule master :
 
 		expand('output/hapchat/{pattern}.05_01.bN_0.{ext}',
 			pattern = postproc(datasets, ['realigned'], [6], [3],
-				[15, 20, 25, 30, 35]),
+				[15, 20, 25, 30, 35, 40]),
 			ext = ['sum', 'inc']),
 
 		expand('output/hapcut2/{pattern}.sum',
