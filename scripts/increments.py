@@ -80,7 +80,7 @@ for line in args.file :
         steps[n].add(b)
 
 # print dictionary at the end
-print(*'step sequence'.split(), sep='\t')
-for step in sorted(steps) :
-    print(step, end='\t')
-    print(*sorted(steps[step]))
+if args.reverse :
+    print_rev_dic(steps)
+else :
+    print_dic(steps)
