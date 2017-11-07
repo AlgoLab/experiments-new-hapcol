@@ -8,19 +8,30 @@ the sequence of increments at the sites where the k was incremented
 '''
 
 import sys
+import argparse
 
 #
 # Parser
 #----------------------------------------------------------------------
 
-entree = sys.stdin
-a = sys.argv[1:]
-i = 0
-while i < len(a) : # bash-style argparse
+parser = argparse.ArgumentParser(description='''
 
-    entree = open(a[i],'r')
+   given a log file, the output of hapchat onto stdout, obtain the
+   sequence of increments at the sites where the k was incremented
 
-    i += 1 # shift once by default
+''')
+
+parser.add_argument(
+    'file',
+    type = argparse.FileType('r'), default = sys.stdin,
+    help = 'input log file')
+parser.add_argument(
+    '-r', '--reverse',
+    dest = 'reverse',
+    action = 'store_true',
+    help = 'output a reversed dictionary')
+
+args = parser.parse_args()
 
 #
 # Main
@@ -28,7 +39,7 @@ while i < len(a) : # bash-style argparse
 
 steps = {} # dictionary to store sequences of increments
 
-for line in entree :
+for line in args.file :
 
     if 'INCREMENT' in line : # .. STEP n INCREMENT k from a to b
 
