@@ -452,4 +452,7 @@ rule increments :
 
 	message : 'obtain details on increasing k from {input.log}'
 
-	shell : 'python {input.script} {input.log} > {output} 2> {log}'
+	shell : '''
+
+   printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
+   python {input.script} -r {input.log} >> {output} 2> {log} '''

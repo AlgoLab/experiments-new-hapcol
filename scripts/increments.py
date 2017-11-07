@@ -34,8 +34,8 @@ def print_rev_dic(steps) :
 
     for key in sorted(rev_dic) :
         print(key, end='\t')
-        print(*sorted(rev_dic[key]))
-
+        print(*sorted(rev_dic[key]), end='\t')
+    print()
 
 #
 # Parser
