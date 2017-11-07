@@ -10,6 +10,33 @@ the sequence of increments at the sites where the k was incremented
 import sys
 import argparse
 
+
+# print dictionary
+def print_dic(steps) :
+
+    print(*'step sequence'.split(), sep='\t')
+    for step in sorted(steps) :
+        print(step, end='\t')
+        print(*sorted(steps[step]))
+
+
+# print reverse dictionary
+def print_rev_dic(steps) :
+    rev_dic = {}
+
+    for step in steps :
+        key = ' '.join(str(x) for x in sorted(steps[step]))
+
+        if key not in rev_dic :
+            rev_dic[key] = []
+
+        rev_dic[key].append(step)
+
+    for key in sorted(rev_dic) :
+        print(key, end='\t')
+        print(*sorted(rev_dic[key]))
+
+
 #
 # Parser
 #----------------------------------------------------------------------
