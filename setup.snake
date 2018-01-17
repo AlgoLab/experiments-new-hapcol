@@ -187,7 +187,7 @@ rule get_hairs :
 
    {time} -v -o {log.time} \
       {extract_hairs} --ref {input.ref} {params} \
-         --VCF {input.vcf} --bam {input.bam} --maxIS 600 \
+         --VCF {input.vcf} --bam {input.bam} \
             > {output} 2> {log.log} '''
 
 #
