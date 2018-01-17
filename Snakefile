@@ -13,6 +13,7 @@ corewh = 'programs/core_whatshap/build/dp'
 hapchat = 'programs/balancing-hapcol/build/hapcol'
 hapcol = 'programs/HapCol/build/hapcol'
 hapcut2 = 'programs/HapCUT2/build/HAPCUT2'
+probhap = 'programs/ProbHap/probhap.py'
 
 # limits on memory usage and runtime
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
@@ -111,9 +112,13 @@ rule master :
 
 		expand('output/hapcut2/{pattern}.sum',
 
+		expand('output/probhap/{pattern}.out',
+			pattern = hapcut2(datasets, indelmodes)),
+
 		expand('output/{method}/{pattern}.phase',
 			method = hairs_methods,
 			pattern = hapcut2(datasets, indelmodes))
+
 
 # coming up ..
 rule next :
@@ -310,6 +315,39 @@ rule run_hapcut2 :
          --output {output} &> {log.log} '''
 
 #
+# run probhap on a hairs file
+#----------------------------------------------------------------------
+rule run_probhap :
+	input :
+		'hairs/' + hapcut_pattern + '.txt'
+
+	output :
+		'output/probhap/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindels)}.out'
+
+	log :
+		reads = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.reads',
+		assignments = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.assignments',
+		log = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
+		time = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+
+	message : '''
+
+   running probhap on hairs file: {input}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
+
+	shell : '''
+
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
+      python2 {probhap} \
+         --reads {input} \
+         --parsed-reads {log.reads} \
+         --phase {output} \
+         --assignments {log.assignments} &> {log.log} '''
+
 #
 # run a hairs method (refhap, fasthare, ..)
 #----------------------------------------------------------------------
