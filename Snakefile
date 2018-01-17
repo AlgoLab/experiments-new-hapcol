@@ -18,6 +18,18 @@ hapcut2 = 'programs/HapCUT2/build/HAPCUT2'
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
 timelimit = '24h' # 24 hour time limit
 
+# hairs methods
+hairs_methods = ['refhap', 'fasthare']
+methods_regex = '('+'|'.join([method for method in hairs_methods])+')'
+
+def hairs_method(wildcards) :
+
+	sih = 'programs/refhap/SingleIndividualHaplotyper/SIH.jar'
+	main = 'mpg.molgen.sih.main.SIH'
+	opt = '-a FastHare' if wildcards.method == 'fasthare' else ''
+
+        return 'java -cp {} {} {}'.format(sih, main, opt)
+
 # pattern (taking into account all input/output types)
 full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
 
@@ -98,6 +110,9 @@ rule master :
 			ext = ['sum', 'inc']),
 
 		expand('output/hapcut2/{pattern}.sum',
+
+		expand('output/{method}/{pattern}.phase',
+			method = hairs_methods,
 			pattern = hapcut2(datasets, indelmodes))
 
 # coming up ..
@@ -293,6 +308,38 @@ rule run_hapcut2 :
    {time} -v -o {log.time} {timeout} {timelimit} \
       {hapcut2} --fragments {input.txt} --VCF {input.vcf} \
          --output {output} &> {log.log} '''
+
+#
+#
+# run a hairs method (refhap, fasthare, ..)
+#----------------------------------------------------------------------
+rule run_hairs_method :
+	input :
+		'hairs/' + hapcut_pattern + '.txt',
+
+	params :
+		method = hairs_method
+
+	output :
+		'output/{method,' + methods_regex + '}/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindels)}.phase'
+
+	log :
+		log = 'output/{method}/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
+		time = 'output/{method}/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+
+	message : '''
+
+   running {wildcards.method} on hairs file: {input}
+
+   with memory limit: {memlimit}K
+
+   with time limit: {timelimit} '''
+
+	shell : '''
+
+   ulimit -Sv {memlimit}
+   {time} -v -o {log.time} {timeout} {timelimit} \
+      {params.method} {input} {output} &> {log.log} '''
 
 #
 # rule that asks for all the different results that we want for a run
