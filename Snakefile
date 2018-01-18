@@ -346,7 +346,8 @@ rule run_probhap :
          --reads {input} \
          --parsed-reads {log.reads} \
          --phase {output} \
-         --assignments {log.assignments} &> {log.log} '''
+         --assignments {log.assignments} > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # run a hairs method (refhap, fasthare, ..)
@@ -377,7 +378,8 @@ rule run_hairs_method :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      {params.method} {input} {output} &> {log.log} '''
+      {params.method} {input} {output} > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # rule that asks for all the different results that we want for a run
