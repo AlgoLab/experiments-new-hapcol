@@ -25,7 +25,7 @@ chr_covs = {
 } # just 15, 20, .., 50 for chr21
 
 # whatshap processing
-modes = ['raw', 'realigned'] # whatshap realignment
+modes = ['raw', 'realigned'] # realignment
 hs = max_covs  # whatshap read selection
 
 # hapcut modes
@@ -53,7 +53,7 @@ downsamplings = ['.downs_s{}_m{}'.format(seed, max)
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
-hapcut_pattern = dataset_pattern + '.{indelsornot,(indels|noindels)}'
+hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.{indelsornot,(indels|noindels)}'
 whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
 post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern + ')}{downsample,(.no_downs|' + downsample_pattern + ')}{mergeafter,(.no_merging|' + merge_pattern + ')}'
 
@@ -82,9 +82,9 @@ rule setup :
 		expand('wif/{pattern}.wif.info_/block_sites_',
 			pattern = whatshap_downsample + post_whatshap),
 
-		expand('hairs/{pattern}.{mode}.txt',
+		expand('hairs/{pattern}.raw.{indelmode}.hairs',
 			pattern = datasets,
-			mode = indelmodes),
+			indelmode = indelmodes),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
 			data = data,
@@ -152,7 +152,7 @@ rule get_wif :
    after selecting reads down to max coverage {params.h} '''
 
 	shell : '''
-   
+
    {time} -v -o {log.time} \
       {phase} -o /dev/null {params.realignment} \
          --output-wif {output} -H {params.h} \
@@ -171,11 +171,11 @@ rule get_hairs :
 	params : lambda wildcards :
 		'--indels 1' if wildcards.indelsornot == 'indels' else ''
 
-	output : 'hairs/' + hapcut_pattern + '.txt'
+	output : 'hairs/' + hairs_pattern + '.hairs'
 
 	log :
-		log = 'hairs/' + hapcut_pattern + '.log',
-		time = 'hairs/' + hapcut_pattern + '.time'
+		log = 'hairs/' + hairs_pattern + '.log',
+		time = 'hairs/' + hairs_pattern + '.time'
 
 	message : '''
 
