@@ -20,10 +20,7 @@ individuals = ['child'] # mother, father, ..
 chromosomes = [1] # 21, ..
 coverages = list(range(25, 65, 5)) # 25, 30, .., 60
 max_covs = list(range(15, 40, 5))
-chr_covs = {
-	1 : coverages,
-	21 : coverages[:-2]
-} # just 15, 20, .., 50 for chr21
+chr_covs = { 1 : coverages }
 
 # whatshap processing
 modes = ['raw', 'realigned'] # realignment
