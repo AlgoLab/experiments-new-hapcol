@@ -9,6 +9,7 @@ hap_dir = '/home/prj_rnabwt/haplotyping'
 time = '/usr/bin/time'
 phase = 'programs/whatshap/venv/bin/whatshap phase'
 extract_hairs = 'programs/hapcut/extractHAIRS'
+extract_hairs2 = 'programs/HapCUT2/build/extractHAIRS'
 scripts = ['wiftools.py', 'subvcf.py']
 scripts_regex = '('+'|'.join([s for s in scripts])+')'
 
@@ -84,6 +85,11 @@ rule setup :
 
 		expand('hairs/{pattern}.raw.{indelmode}.hairs',
 			pattern = datasets,
+			indelmode = indelmodes),
+
+		expand('hairs2/{pattern}.{mode}.{indelmode}.hairs',
+			pattern = datasets,
+			mode = modes,
 			indelmode = indelmodes),
 
 		expand('vcf/{data}.child.chr{chr}.phased.vcf',
@@ -189,6 +195,39 @@ rule get_hairs :
       {extract_hairs} --ref {input.ref} {params} \
          --VCF {input.vcf} --bam {input.bam} \
             > {output} 2> {log.log} '''
+
+# obtain hairs using hapcut2 extract hairs
+rule get_hairs2 :
+	input :
+		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
+
+	params :
+		realignment = lambda wildcards :
+			'--pacbio 1' if wildcards.realignment == 'realigned' else '',
+		indels = lambda wildcards :
+			'--indels 1' if wildcards.indelsornot == 'indels' else ''
+
+	output : 'hairs2/' + hairs_pattern + '.hairs'
+
+	log :
+		log = 'hairs2/' + hairs_pattern + '.log',
+		time = 'hairs2/' + hairs_pattern + '.time'
+
+	message : '''
+
+   obtaining hairs file: {output} with HapCUT2 extractHAIRS
+
+   from: {input.bam} / {input.vcf} pair '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {extract_hairs2} --ref {input.ref} {params} \
+         --VCF {input.vcf} --bam {input.bam} --out {output} \
+            > {log.log} 2>&1 '''
 
 #
 # downsample a wif file to a specified max coverage
