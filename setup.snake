@@ -11,7 +11,7 @@ phase = 'programs/whatshap/venv/bin/whatshap phase'
 extract_hairs = 'programs/hapcut/extractHAIRS'
 extract_hairs2 = 'programs/HapCUT2/build/extractHAIRS'
 scripts = ['wiftools.py', 'subvcf.py']
-scripts_regex = '('+'|'.join([s for s in scripts])+')'
+scripts_regex = '|'.join([s for s in scripts])
 
 # datasets
 data = ['ashk', 'sim']
@@ -30,30 +30,33 @@ hs = max_covs  # whatshap read selection
 indelmodes = ['indels', 'noindels']
 
 # merging
-merge_pattern = '.merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
+merge_pattern = 'merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}'
+merge_regex = 'no_merging|merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
 error_rates = [15]
 max_errs = [25]
 thresholds = [6] # 17, ..
 neg_threshs = [3]
-mergings = ['.merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
+mergings = ['merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
 	for err in error_rates
 	for max in max_errs
 	for thresh in thresholds
-	for neg in neg_threshs] + ['.no_merging']
+	for neg in neg_threshs] + ['no_merging']
 
 # downsampling to a max coverage (in a random greedy way)
-downsample_pattern = '.downs_s[0-9]+_m[0-9]+'
+downs_pattern = 'downs_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
+downs_regex = 'no_downs|downs_s[0-9]+_m[0-9]+'
+sample_pattern = 'sample_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
 seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
-downsamplings = ['.downs_s{}_m{}'.format(seed, max)
+downsamplings = ['downs_s{}_m{}'.format(seed, max)
 	for seed in seeds
-	for max in max_covs] + ['.no_downs']
+	for max in max_covs] + ['no_downs']
 
 # common patterns
 vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
 dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
-hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.{indelsornot,(indels|noindels)}'
+hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}{indelmode,(.indels|.noindels)}'
 whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
-post_pattern = whatshap_pattern + '{mergebefore,(.no_merging|' + merge_pattern + ')}{downsample,(.no_downs|' + downsample_pattern + ')}{mergeafter,(.no_merging|' + merge_pattern + ')}'
+post_pattern = whatshap_pattern + '.{mergebefore,(' + merge_regex + ')}.{downsample,(' + downs_regex + ')}.{mergeafter,(' + merge_regex + ')}'
 
 # common lists
 datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
@@ -66,7 +69,7 @@ whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset
 	for mode in modes
 	for h in hs]
 
-post_whatshap = ['{}.{}.hN{}{}.no_merging'.format(dataset, mode, merging, downsampling)
+post_whatshap = ['{}.{}.hN.{}.{}.no_merging'.format(dataset, mode, merging, downsampling)
 	for dataset in datasets
 	for mode in modes
 	for merging in mergings
@@ -98,7 +101,7 @@ rule setup :
 #----------------------------------------------------------------------
 rule link_script :
         input : hap_dir + '/scripts/{script}'
-	output : 'scripts/{script,' + scripts_regex + '}'
+	output : 'scripts/{script,(' + scripts_regex + ')}'
 	message : 'linking script {input} to {output}'
 	shell : 'ln -fsrv {input} {output}'
 
@@ -172,7 +175,7 @@ rule get_hairs :
 		ref = 'reference/human_g1k_v37.fasta'
 
 	params : lambda wildcards :
-		'--indels 1' if wildcards.indelsornot == 'indels' else ''
+		'--indels 1' if wildcards.indelmode == '.indels' else ''
 
 	output : 'hairs/' + hairs_pattern + '.hairs'
 
@@ -205,7 +208,7 @@ rule get_hairs2 :
 		realignment = lambda wildcards :
 			'--pacbio 1' if wildcards.realignment == 'realigned' else '',
 		indels = lambda wildcards :
-			'--indels 1' if wildcards.indelsornot == 'indels' else ''
+			'--indels 1' if wildcards.indelmode == '.indels' else ''
 
 	output : 'hairs2/' + hairs_pattern + '.hairs'
 
@@ -232,9 +235,9 @@ rule get_hairs2 :
 rule extract_sample :
 	input :
 		source = '{path}.wif',
-		sample = '{path}.wif.sample_s{seed}_m{max}'
+		sample = '{path}.wif.' + sample_pattern
 
-	output : '{path}.downs_s{seed,[0-9]+}_m{max,[0-9]+}.wif'
+	output : '{path}.' + downs_pattern + '.wif'
 	message : 'extract lines {input.sample} from {input.source}'
 
 	shell : '''
@@ -257,17 +260,17 @@ rule downsample :
 		wif = '{path}.wif',
 		shuf = '{path}.wif.lines.shuf{seed}'
 
-	output : '{path}.wif.sample_s{seed,[0-9]+}_m{max,[0-9]+}'
+	output : '{path}.wif.' + sample_pattern
 
 	log :
-		log = '{path}.wif.sample_s{seed}_m{max}.log',
-		time = '{path}.wif.sample_s{seed}_m{max}.time'
+		log = '{path}.wif.' + sample_pattern + '.log',
+		time = '{path}.wif.' + sample_pattern + '.time'
 
 	message : '''
 
    psuedorandom downsampling of: {input.wif}
 
-   to maximum coverage {wildcards.max}, according to:
+   to maximum coverage {wildcards.maxcov}, according to:
 
    {input.shuf}, producing the sample:
 
@@ -276,7 +279,7 @@ rule downsample :
 	shell : '''
 
    {time} -v -o {log.time} \
-      python {input.script} -s {wildcards.max} {input.shuf} {input.wif} \
+      python {input.script} -s {wildcards.maxcov} {input.shuf} {input.wif} \
          > {output} 2> {log.log} '''
 
 # seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
@@ -310,12 +313,12 @@ rule merge_wif :
 		t = lambda wildcards : 10 ** int(wildcards.thresh),
 		n = lambda wildcards : 10 ** int(wildcards.neg)
 
-	output : '{path}.merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}.wif'
+	output : '{path}.' + merge_pattern + '.wif'
 
 	log :
-		log = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.log',
-		time = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.time',
-		graph = '{path}.merged_e{err}_m{max}_t{thresh}_n{neg}.wif.graph'
+		log = '{path}.' + merge_pattern + '.wif.log',
+		time = '{path}.' + merge_pattern + '.wif.time',
+		graph = '{path}.' + merge_pattern + '.wif.graph'
 
 	message : '''
 
