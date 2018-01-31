@@ -120,19 +120,16 @@ rule master :
 				[15, 20, 25, 30, 35, 40]),
 			ext = ['sum', 'inc']),
 
-		expand('output/hapcut2/{pattern}.sum',
-
-		expand('output/probhap/{pattern}.out',
-			pattern = hapcut2(datasets, indelmodes)),
-
-		expand('output/{method}/{pattern}.phase',
-			method = hairs_methods,
-			pattern = hapcut2(datasets, indelmodes))
-
+		expand('output/{method}/{pattern}.out',
+			method = sih_methods + ['probhap'],
+			pattern = hairs(datasets, ['raw'], indelmodes))
 
 # coming up ..
 rule next :
 	input :
+		expand('output/hapcut2/{pattern}.out',
+			pattern = hairs(datasets, modes, indelmodes)),
+
 		expand('output/core_wh/{pattern}.sum',
 			pattern = whatshap(
 				datasubset(
