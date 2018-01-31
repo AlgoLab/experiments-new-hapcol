@@ -3,6 +3,7 @@
 #----------------------------------------------------------------------
 #
 include : 'setup.snake'
+
 time = '/usr/bin/time'
 timeout = '/usr/bin/timeout'
 compare = 'programs/whatshap/venv/bin/whatshap compare'
@@ -23,7 +24,7 @@ timelimit = '24h' # 24 hour time limit
 hairs_methods = ['refhap', 'fasthare']
 methods_regex = '('+'|'.join([method for method in hairs_methods])+')'
 
-def hairs_method(wildcards) :
+def sih_method(wildcards) :
 
 	sih = 'programs/refhap/SingleIndividualHaplotyper/SIH.jar'
 	main = 'mpg.molgen.sih.main.SIH'
@@ -54,7 +55,7 @@ def whatshap(datasets_, modes_, maxs_) :
 
 # partial paramerization of a merging (threshold and neg. threshold)
 def merging(thrs_, negthrs_) :
-	return ['.merged_e{}_m{}_t{}_n{}'.format(err_, max_, thresh_, neg_)
+	return ['merged_e{}_m{}_t{}_n{}'.format(err_, max_, thresh_, neg_)
 		for err_ in error_rates
 		for max_ in max_errs
 		for thresh_ in thrs_
@@ -62,24 +63,25 @@ def merging(thrs_, negthrs_) :
 
 # downsampling to a specified list of max coverages
 def downs(maxs_) :
-	return ['.downs_s{}_m{}'.format(seed_, max_)
+	return ['downs_s{}_m{}'.format(seed_, max_)
 		for seed_ in seeds
 		for max_ in maxs_]
 
 # datasets postprocessed to a specified list of max cov
 def postproc(datasets_, modes_, thrs_, negthrs_, maxs_, rnddowns = False) :
 	only_rnddowns = ['.no_merging'] if rnddowns else []
-	return ['{}.{}.hN{}{}.no_merging'.format(dataset_, mode_, merging_, downsampling_)
+	return ['{}.{}.hN.{}.{}.no_merging'.format(dataset_, mode_, merging_, downsampling_)
 		for dataset_ in datasets_
 		for mode_ in modes_
 		for merging_ in merging(thrs_, negthrs_) + only_rnddowns
 		for downsampling_ in downs(maxs_)]
 
-# datasets processed by hapcut2 (just a shortcut, really)
-def hapcut2(datasets_, modes_) :
-	return ['{}.raw.hN.no_merging.no_downs.no_merging.{}'.format(dataset_, mode_)
+# datasets processed by a hairs method (just a shortcut, really)
+def hairs(datasets_, modes_, indelmodes_) :
+	return ['{}.{}.hN.no_merging.no_downs.no_merging.{}'.format(dataset_, mode_, indelmode_)
 		for dataset_ in datasets_
-		for mode_ in modes_]
+		for mode_ in modes_
+		for indelmode_ in indelmodes_]
 
 # datasets both processed by whatshap and postprocessed to list of max cov.
 def sliceof(datasets_, modes_, thrs_, negthrs_, maxs_) :
@@ -289,19 +291,19 @@ rule run_hapcol :
 #----------------------------------------------------------------------
 rule run_hapcut2 :
 	input :
-		txt = 'hairs/' + hapcut_pattern + '.txt',
+		hairs = 'hairs2/' + hairs_pattern + '.hairs',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
 	output :
-		'output/hapcut2/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindesl)}.txt'
+		'output/hapcut2/' + full_pattern + '.out'
 
 	log :
-		log = 'output/hapcut2/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
-		time = 'output/hapcut2/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+		log = 'output/hapcut2/' + full_pattern + '.log',
+		time = 'output/hapcut2/' + full_pattern + '.time'
 
 	message : '''
 
-   running hapcut2 on hairs file: {input.txt}
+   running hapcut2 on hairs file: {input.hairs}
 
    with memory limit: {memlimit}K
 
@@ -311,24 +313,25 @@ rule run_hapcut2 :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      {hapcut2} --fragments {input.txt} --VCF {input.vcf} \
-         --output {output} &> {log.log} '''
+      {_hapcut2_} --fragments {input.hairs} --VCF {input.vcf} \
+         --output {output} > {log.log} 2>&1 || true
+   touch {output} '''
 
 #
 # run probhap on a hairs file
 #----------------------------------------------------------------------
 rule run_probhap :
 	input :
-		'hairs/' + hapcut_pattern + '.txt'
+		'hairs/' + hairs_pattern + '.hairs'
 
 	output :
-		'output/probhap/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindels)}.out'
+		'output/probhap/' + full_pattern + '.out'
 
 	log :
-		reads = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.reads',
-		assignments = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.assignments',
-		log = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
-		time = 'output/probhap/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+		reads = 'output/probhap/' + full_pattern + '.reads',
+		assignments = 'output/probhap/' + full_pattern + '.assignments',
+		log = 'output/probhap/' + full_pattern + '.log',
+		time = 'output/probhap/' + full_pattern + '.time'
 
 	message : '''
 
@@ -350,21 +353,21 @@ rule run_probhap :
    touch {output} '''
 
 #
-# run a hairs method (refhap, fasthare, ..)
+# run a SIH method (refhap, fasthare, ..)
 #----------------------------------------------------------------------
-rule run_hairs_method :
+rule run_sih_method :
 	input :
-		'hairs/' + hapcut_pattern + '.txt',
+		'hairs/' + hairs_pattern + '.hairs',
 
 	params :
-		method = hairs_method
+		method = sih_method
 
 	output :
-		'output/{method,' + methods_regex + '}/' + dataset_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot,(indels|noindels)}.phase'
+		'output/' + sih_pattern + '/' + full_pattern + '.out'
 
 	log :
-		log = 'output/{method}/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.log',
-		time = 'output/{method}/' + hapcut_pattern + '.raw.hN.no_merging.no_downs.no_merging.{indelsornot}.time'
+		log = 'output/{method}/' + full_pattern + '.log',
+		time = 'output/{method}/' + full_pattern + '.time'
 
 	message : '''
 
