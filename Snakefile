@@ -9,12 +9,12 @@ timeout = '/usr/bin/timeout'
 compare = 'programs/whatshap/venv/bin/whatshap compare'
 hapcut2vcf = 'programs/whatshap/venv/bin/whatshap hapcut2vcf'
 
-# softwares
-corewh = 'programs/core_whatshap/build/dp'
-hapchat = 'programs/balancing-hapcol/build/hapcol'
-hapcol = 'programs/HapCol/build/hapcol'
-hapcut2 = 'programs/HapCUT2/build/HAPCUT2'
-probhap = 'programs/ProbHap/probhap.py'
+# programs
+_corewh_ = 'programs/core_whatshap/build/dp'
+_hapchat_ = 'programs/balancing-hapcol/build/hapcol'
+_hapcol_ = 'programs/HapCol/build/hapcol'
+_hapcut2_ = 'programs/HapCUT2/build/HAPCUT2'
+_probhap_ = 'programs/ProbHap/probhap.py'
 
 # limits on memory usage and runtime
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
@@ -207,7 +207,7 @@ rule run_core_whatshap :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      {corewh} -h {output} -a {input} \
+      {_corewh_} -h {output} -a {input} \
          > {log.wif} 2> {log.log} || true
    touch {output} '''
 
@@ -248,7 +248,7 @@ rule run_hapchat :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      {hapchat} -i {input} -o {output.hap} -A \
+      {_hapchat_} -i {input} -o {output.hap} -A \
          -e {params.epsilon} -a {params.alpha} \
          -b {params.balance_cov} -r {params.balance_ratio} \
             > {output.log} 2>&1 || true
@@ -282,7 +282,7 @@ rule run_hapcol :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      bash {input.script} {hapcol} {input.wif} {output} \
+      bash {input.script} {_hapcol_} {input.wif} {output} \
          > {log.log} 2>&1 || true
    touch {output} '''
 
@@ -345,7 +345,7 @@ rule run_probhap :
 
    ulimit -Sv {memlimit}
    {time} -v -o {log.time} {timeout} {timelimit} \
-      python2 {probhap} \
+      python2 {_probhap_} \
          --reads {input} \
          --parsed-reads {log.reads} \
          --phase {output} \
