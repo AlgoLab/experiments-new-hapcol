@@ -155,11 +155,11 @@ rule run_whatshap :
 		h = lambda wildcards :
 			'1000' if wildcards.h == 'N' else wildcards.h
 
-	output : 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.phased.vcf'
+	output : 'output/whatshap/' + post_pattern + '.phased.vcf'
 
 	log :
-		log = 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.log',
-		time = 'output/whatshap/' + whatshap_pattern + '.no_merging.no_downs.no_merging.time'
+		log = 'output/whatshap/' + post_pattern + '.log',
+		time = 'output/whatshap/' + post_pattern + '.time'
 
 	message : '''
 
