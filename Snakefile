@@ -20,9 +20,19 @@ _probhap_ = 'programs/ProbHap/probhap.py'
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
 timelimit = '24h' # 24 hour time limit
 
-# hairs methods
-hairs_methods = ['refhap', 'fasthare']
-methods_regex = '('+'|'.join([method for method in hairs_methods])+')'
+# methods
+sih_methods = ['refhap', 'fasthare']
+hapcut_methods = ['hapcut', 'hapcut2']
+hap_methods = ['core_wh', 'hapcol', 'hapchat']
+all_methods = sih_methods + hapcut_methods + hap_methods + ['whatshap']
+
+def list_regex(a) :
+	return '|'.join([x for x in a])
+
+sih_pattern = '{method,(' + list_regex(sih_methods) + ')}'
+hapcut_pattern = '{method,(' + list_regex(hapcut_methods) + ')}'
+hap_pattern = '{method,(' + list_regex(hap_methods) + ')}'
+methods_pattern = '{method,(' + list_regex(all_methods) + ')}'
 
 def sih_method(wildcards) :
 
@@ -32,15 +42,13 @@ def sih_method(wildcards) :
 
         return 'java -cp {} {} {}'.format(sih, main, opt)
 
-# pattern (taking into account all input/output types)
-full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
-
-# output directory pattern (for all methods that output .hap files)
-outdir_pattern = '{dir,(output/hapchat|output/hapcol|output/core_wh)}'
-
 # epislon / alpha pairs for hapcol, and variants
 ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
 ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
+
+# pattern (taking into account all input/output types)
+full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
+output_pattern = methods_pattern + '/' + full_pattern
 
 #
 # useful list-defining functions (and lists)
@@ -389,11 +397,11 @@ rule run_sih_method :
 #----------------------------------------------------------------------
 rule gather_summary :
 	input :
-		diff = '{dir}/' + full_pattern + '.diff',
-		mec = '{dir}/' + full_pattern + '.mec',
-		sites = '{dir}/' + full_pattern + '.sites'
+		diff = 'output/' + output_pattern + '.diff',
+		mec = 'output/' + output_pattern + '.mec',
+		sites = 'output/' + output_pattern + '.sites'
 
-	output : '{dir}/' + full_pattern + '.sum'
+	output : 'output/' + output_pattern + '.sum'
 
 	message : '''
 
@@ -419,13 +427,13 @@ rule gather_summary :
 rule compare_vcfs :
 	input :
 		true = 'vcf/' + vcf_pattern + '.phased.vcf',
-		vcf = '{dir}/' + full_pattern + '.phased.vcf'
+		vcf = 'output/' + output_pattern + '.phased.vcf'
 
 	output :
-		diff = '{dir}/' + full_pattern + '.diff',
-		bed = '{dir}/' + full_pattern + '.bed'
+		diff = 'output/' + output_pattern + '.diff',
+		bed = 'output/' + output_pattern + '.bed'
 
-	log : '{dir}/' + full_pattern + '.diff.log'
+	log : 'output/' + output_pattern + '.diff.log'
 
 	message : '''
 
@@ -446,13 +454,13 @@ rule compare_vcfs :
 rule phase_vcf :
 	input :
 		script = 'scripts/subvcf.py',
-		hap = outdir_pattern + '/' + full_pattern + '.hap',
+		hap = 'output/' + hap_pattern + '/' + full_pattern + '.hap',
 		blocks = 'wif/' + post_pattern + '.wif.info_/block_sites_',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : outdir_pattern + '/' + full_pattern + '.phased.vcf'
+	output : 'output/' + hap_pattern + '/' + full_pattern + '.phased.vcf'
 
-	log : outdir_pattern + '/' + full_pattern + '.phased.vcf.log'
+	log : 'output/' + hap_pattern + '/' + full_pattern + '.phased.vcf.log'
 
 	message : '''
 
@@ -466,15 +474,15 @@ rule phase_vcf :
    python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
       > {output} 2> {log} '''
 
-# convert hapcut2 output to (phased) vcf
-rule hapcut2_to_vcf :
+# convert hapcut output format to (phased) vcf
+rule hapcut_to_vcf :
 	input :
-		txt = 'output/hapcut2/' + full_pattern + '.txt',
+		out = 'output/' + hapcut_pattern + '/' + full_pattern + '.out',
 		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf'
 
-	output : 'output/hapcut2/' + full_pattern + '.phased.vcf'
+	output : 'output/' + hapcut_pattern + '/' + full_pattern + '.phased.vcf'
 
-	log : 'output/hapcut2/' + full_pattern + '.phased.vcf.log'
+	log : 'output/' + hapcut_pattern + '/' + full_pattern + '.phased.vcf.log'
 
 	message : 'converting hapcut {input} to {output}'
 
@@ -488,12 +496,12 @@ rule hapcut2_to_vcf :
 rule mec_score :
 	input :
 		script = 'scripts/wiftools.py',
-		vcf = '{dir}/' + full_pattern + '.phased.vcf',
+		vcf = 'output/' + output_pattern + '.phased.vcf',
 		wif = 'wif/' + post_pattern + '.wif'
 
-	output : '{dir}/' + full_pattern + '.mec'
+	output : 'output/' + output_pattern + '.mec'
 
-	log : '{dir}/' + full_pattern + '.mec.log'
+	log : 'output/' + output_pattern + '.mec.log'
 
 	message : '''
 
@@ -515,11 +523,11 @@ rule sitewise_details :
 	input :
 		script = 'scripts/sitesinfo.py',
 		sites = 'wif/' + post_pattern + '.wif.info_/sites_',
-		swerrs = '{dir}/' + full_pattern + '.bed'
+		swerrs = 'output/' + output_pattern + '.bed'
 
-	output : '{dir}/' + full_pattern + '.sites'
+	output : 'output/' + output_pattern + '.sites'
 
-	log : '{dir}/' + full_pattern + '.sites.log'
+	log : 'output/' + output_pattern + '.sites.log'
 
 	message : 'obtain sitewise details {output}'
 
