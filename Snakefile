@@ -7,7 +7,7 @@ include : 'setup.snake'
 time = '/usr/bin/time'
 timeout = '/usr/bin/timeout'
 compare = 'programs/whatshap/venv/bin/whatshap compare'
-hapcut2vcf = 'programs/whatshap/venv/bin/whatshap hapcut2vcf'
+hapcut2vcf = 'programs/conversion/whatshap/venv/bin/whatshap hapcut2vcf'
 
 # programs
 _corewh_ = 'programs/core_whatshap/build/dp'
