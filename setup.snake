@@ -64,6 +64,11 @@ datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
 	for chromosome in chromosomes
 	for coverage in chr_covs[chromosome]]
 
+simulated = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+	for data in ['sim']
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]]
+
 whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
 	for dataset in datasets
 	for mode in modes

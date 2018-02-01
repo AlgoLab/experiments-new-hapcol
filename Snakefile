@@ -120,16 +120,16 @@ rule master :
 				[15, 20, 25, 30, 35, 40]),
 			ext = ['sum', 'inc']),
 
-		expand('output/{method}/{pattern}.out',
+		expand('output/hapcut2/{pattern}.phased.vcf',
+			pattern = hairs(simulated, modes, indelmodes)),
+
+		expand('output/{method}/{pattern}.phased.vcf',
 			method = sih_methods + ['probhap'],
 			pattern = hairs(datasets, ['raw'], indelmodes))
 
 # coming up ..
 rule next :
 	input :
-		expand('output/hapcut2/{pattern}.out',
-			pattern = hairs(datasets, modes, indelmodes)),
-
 		expand('output/core_wh/{pattern}.sum',
 			pattern = whatshap(
 				datasubset(
@@ -471,7 +471,7 @@ rule phase_vcf :
    python {input.script} -p {input.hap} {input.blocks} {input.vcf} \
       > {output} 2> {log} '''
 
-# convert hapcut output format to (phased) vcf
+# convert hapcut (or hapcut-like) output format to (phased) vcf
 rule hapcut_to_vcf :
 	input :
 		out = 'output/' + hapcut_pattern + '/' + full_pattern + '.out',
@@ -485,7 +485,7 @@ rule hapcut_to_vcf :
 
 	shell : '''
 
-   {hapcut2vcf} {input.vcf} {input.txt} > {output} 2> {log} '''
+   {hapcut2vcf} {input.vcf} {input.out} > {output} 2> {log} '''
 
 #
 # compute MEC score of phased vcf wrt instance, as a wif file
