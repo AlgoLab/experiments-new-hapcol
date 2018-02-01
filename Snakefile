@@ -22,9 +22,9 @@ timelimit = '24h' # 24 hour time limit
 
 # methods
 sih_methods = ['refhap', 'fasthare']
-hapcut_methods = ['hapcut', 'hapcut2']
+hapcut_methods = ['hapcut', 'hapcut2'] + sih_methods + ['probhap']
 hap_methods = ['core_wh', 'hapcol', 'hapchat']
-all_methods = sih_methods + hapcut_methods + hap_methods + ['whatshap']
+all_methods = hapcut_methods + hap_methods + ['whatshap']
 
 def list_regex(a) :
 	return '|'.join([x for x in a])
