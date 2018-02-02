@@ -2,14 +2,10 @@
 # for running all the different haplotyping softwares
 #----------------------------------------------------------------------
 #
-include : 'setup.snake'
+data_dir = '/data/phasing-comparison-experiments-hapcol'
+hap_dir = '/home/prj_rnabwt/haplotyping'
 
-time = '/usr/bin/time'
-timeout = '/usr/bin/timeout'
-compare = 'programs/whatshap/venv/bin/whatshap compare'
-hapcut2vcf = 'programs/conversion/whatshap/venv/bin/whatshap hapcut2vcf'
-
-# programs
+# haplotyping softwares
 _corewh_ = 'programs/core_whatshap/build/dp'
 _hapchat_ = 'programs/balancing-hapcol/build/hapcol'
 _hapcol_ = 'programs/HapCol/build/hapcol'
@@ -20,11 +16,68 @@ _probhap_ = 'programs/ProbHap/probhap.py'
 memlimit = 64 * 1024 * 1024 # 64GB limit (in KB)
 timelimit = '24h' # 24 hour time limit
 
-# methods
+# lists of methods by name
 sih_methods = ['refhap', 'fasthare']
 hapcut_methods = ['hapcut', 'hapcut2'] + sih_methods + ['probhap']
 hap_methods = ['core_wh', 'hapcol', 'hapchat']
 all_methods = hapcut_methods + hap_methods + ['whatshap']
+
+# auxiliary programs
+time = '/usr/bin/time'
+timeout = '/usr/bin/timeout'
+phase = 'programs/whatshap/venv/bin/whatshap phase'
+compare = 'programs/whatshap/venv/bin/whatshap compare'
+hapcut2vcf = 'programs/conversion/whatshap/venv/bin/whatshap hapcut2vcf'
+extract_hairs = 'programs/hapcut/extractHAIRS'
+extract_hairs2 = 'programs/HapCUT2/build/extractHAIRS'
+
+# datasets
+data = ['ashk', 'sim']
+platforms = ['pacbio']
+individuals = ['child'] # mother, father, ..
+chromosomes = [1] # 21, ..
+coverages = list(range(25, 65, 5)) # 25, 30, .., 60
+max_covs = list(range(15, 40, 5))
+chr_covs = { 1 : coverages }
+
+# preprocessing
+modes = ['raw', 'realigned'] # realignment
+hs = max_covs  # whatshap read selection
+indelmodes = ['indels', 'noindels'] # indel modes for hairs methods
+
+# merging
+merge_pattern = 'merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}'
+merge_regex = 'no_merging|merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
+error_rates = [15]
+max_errs = [25]
+thresholds = [6] # 17, ..
+neg_threshs = [3]
+mergings = ['merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
+	for err in error_rates
+	for max in max_errs
+	for thresh in thresholds
+	for neg in neg_threshs] + ['no_merging']
+
+# downsampling to a max coverage (in a random greedy way)
+downs_pattern = 'downs_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
+downs_regex = 'no_downs|downs_s[0-9]+_m[0-9]+'
+sample_pattern = 'sample_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
+seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
+downsamplings = ['downs_s{}_m{}'.format(seed, max)
+	for seed in seeds
+	for max in max_covs] + ['no_downs']
+
+# epislon / alpha pairs for hapcol, and variants
+ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
+ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
+
+# common patterns
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
+dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
+hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}{indelmode,(.indels|.noindels)}'
+whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
+post_pattern = whatshap_pattern + '.{mergebefore,(' + merge_regex + ')}.{downsample,(' + downs_regex + ')}.{mergeafter,(' + merge_regex + ')}'
+full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
 
 def list_regex(a) :
 	return '|'.join([x for x in a])
@@ -34,25 +87,33 @@ hapcut_pattern = '{method,(' + list_regex(hapcut_methods) + ')}'
 hap_pattern = '{method,(' + list_regex(hap_methods) + ')}'
 methods_pattern = '{method,(' + list_regex(all_methods) + ')}'
 
-def sih_method(wildcards) :
-
-	sih = 'programs/refhap/SingleIndividualHaplotyper/SIH.jar'
-	main = 'mpg.molgen.sih.main.SIH'
-	opt = '-a FastHare' if wildcards.method == 'fasthare' else ''
-
-        return 'java -cp {} {} {}'.format(sih, main, opt)
-
-# epislon / alpha pairs for hapcol, and variants
-ea_vals = ['05_1', '05_01', '05_001', '05_0001', '05_00001']
-ea_two = ['01_1', '01_01', '01_001', '01_0001', '1_1', '1_01', '1_001', '1_0001']
-
-# pattern (taking into account all input/output types)
-full_pattern = post_pattern + '{ea,(|.[0-9]+_[0-9]+)}{balancing,(|.b([0-9]+|N)_[0-9]+)}{indelmode,(|.indels|.noindels)}'
 output_pattern = methods_pattern + '/' + full_pattern
 
 #
-# useful list-defining functions (and lists)
+# useful lists and list-defining functions
 #----------------------------------------------------------------------
+
+# list of files we need to generate
+datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+	for data in data
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]]
+
+simulated = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+	for data in ['sim']
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]]
+
+whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
+	for dataset in datasets
+	for mode in modes
+	for h in hs]
+
+post_whatshap = ['{}.{}.hN.{}.{}.no_merging'.format(dataset, mode, merging, downsampling)
+	for dataset in datasets
+	for mode in modes
+	for merging in mergings
+	for downsampling in downsamplings]
 
 # datasets processed by whatshap to a specified list of max cov.
 def whatshap(datasets_, modes_, maxs_) :
@@ -126,6 +187,27 @@ rule master :
 		expand('output/{method}/{pattern}.diff',
 			method = sih_methods + ['probhap'],
 			pattern = hairs(datasets, ['raw'], indelmodes))
+
+#
+# master rule
+#----------------------------------------------------------------------
+rule setup :
+	input :
+		expand('wif/{pattern}.wif.info_/block_sites_',
+			pattern = whatshap_downsample + post_whatshap),
+
+		expand('hairs/{pattern}.raw.{indelmode}.hairs',
+			pattern = datasets,
+			indelmode = indelmodes),
+
+		expand('hairs2/{pattern}.{mode}.{indelmode}.hairs',
+			pattern = datasets,
+			mode = modes,
+			indelmode = indelmodes),
+
+		expand('vcf/{data}.child.chr{chr}.phased.vcf',
+			data = data,
+			chr = chromosomes)
 
 #
 # run whatshap on a bam / vcf pair
@@ -342,6 +424,14 @@ rule run_probhap :
 #
 # run a SIH method (refhap, fasthare, ..)
 #----------------------------------------------------------------------
+def sih_method(wildcards) :
+
+	sih = 'programs/refhap/SingleIndividualHaplotyper/SIH.jar'
+	main = 'mpg.molgen.sih.main.SIH'
+	opt = '-a FastHare' if wildcards.method == 'fasthare' else ''
+
+        return 'java -cp {} {} {}'.format(sih, main, opt)
+
 rule run_sih_method :
 	input :
 		'hairs/' + hairs_pattern + '.hairs',
@@ -458,118 +548,6 @@ rule increments :
 
    printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
    python {input.script} -r {input.log} >> {output} 2> {log} '''
-
-#
-# for generating all of the data needed for the experiments
-#----------------------------------------------------------------------
-#
-data_dir = '/data/phasing-comparison-experiments-hapcol'
-hap_dir = '/home/prj_rnabwt/haplotyping'
-
-# scripts and programs
-time = '/usr/bin/time'
-phase = 'programs/whatshap/venv/bin/whatshap phase'
-extract_hairs = 'programs/hapcut/extractHAIRS'
-extract_hairs2 = 'programs/HapCUT2/build/extractHAIRS'
-scripts = ['wiftools.py', 'subvcf.py']
-scripts_regex = '|'.join([s for s in scripts])
-
-# datasets
-data = ['ashk', 'sim']
-platforms = ['pacbio']
-individuals = ['child'] # mother, father, ..
-chromosomes = [1] # 21, ..
-coverages = list(range(25, 65, 5)) # 25, 30, .., 60
-max_covs = list(range(15, 40, 5))
-chr_covs = { 1 : coverages }
-
-# whatshap processing
-modes = ['raw', 'realigned'] # realignment
-hs = max_covs  # whatshap read selection
-
-# hapcut modes
-indelmodes = ['indels', 'noindels']
-
-# merging
-merge_pattern = 'merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}'
-merge_regex = 'no_merging|merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
-error_rates = [15]
-max_errs = [25]
-thresholds = [6] # 17, ..
-neg_threshs = [3]
-mergings = ['merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
-	for err in error_rates
-	for max in max_errs
-	for thresh in thresholds
-	for neg in neg_threshs] + ['no_merging']
-
-# downsampling to a max coverage (in a random greedy way)
-downs_pattern = 'downs_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
-downs_regex = 'no_downs|downs_s[0-9]+_m[0-9]+'
-sample_pattern = 'sample_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
-seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
-downsamplings = ['downs_s{}_m{}'.format(seed, max)
-	for seed in seeds
-	for max in max_covs] + ['no_downs']
-
-# common patterns
-vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
-dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
-hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}{indelmode,(.indels|.noindels)}'
-whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
-post_pattern = whatshap_pattern + '.{mergebefore,(' + merge_regex + ')}.{downsample,(' + downs_regex + ')}.{mergeafter,(' + merge_regex + ')}'
-
-# common lists
-datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
-	for data in data
-	for chromosome in chromosomes
-	for coverage in chr_covs[chromosome]]
-
-simulated = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
-	for data in ['sim']
-	for chromosome in chromosomes
-	for coverage in chr_covs[chromosome]]
-
-whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
-	for dataset in datasets
-	for mode in modes
-	for h in hs]
-
-post_whatshap = ['{}.{}.hN.{}.{}.no_merging'.format(dataset, mode, merging, downsampling)
-	for dataset in datasets
-	for mode in modes
-	for merging in mergings
-	for downsampling in downsamplings]
-
-#
-# master rule
-#----------------------------------------------------------------------
-rule setup :
-	input :
-		expand('wif/{pattern}.wif.info_/block_sites_',
-			pattern = whatshap_downsample + post_whatshap),
-
-		expand('hairs/{pattern}.raw.{indelmode}.hairs',
-			pattern = datasets,
-			indelmode = indelmodes),
-
-		expand('hairs2/{pattern}.{mode}.{indelmode}.hairs',
-			pattern = datasets,
-			mode = modes,
-			indelmode = indelmodes),
-
-		expand('vcf/{data}.child.chr{chr}.phased.vcf',
-			data = data,
-			chr = chromosomes)
-
-#
-# link to a script in the haplotyping/scripts directory, etc.
-#----------------------------------------------------------------------
-rule link_script :
-        input : hap_dir + '/scripts/{script}'
-	output : 'scripts/{script,(' + scripts_regex + ')}'
-	message : 'linking script {input} to {output}'
-	shell : 'ln -fsrv {input} {output}'
 
 #
 # link to files from phasing comparison experiments directory
