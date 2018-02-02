@@ -107,23 +107,23 @@ def datasubset(chr_covs_) :
 #----------------------------------------------------------------------
 rule master :
 	input :
-		expand('output/whatshap/{pattern}.sum',
+		expand('output/whatshap/{pattern}.diff',
 			pattern = whatshap(datasets, ['realigned'],
 				[15, 20, 25])),
 
-		expand('output/hapcol/{pattern}.sum',
+		expand('output/hapcol/{pattern}.diff',
 			pattern = whatshap(datasets, ['raw'],
 				[15, 20, 25, 30])),
 
 		expand('output/hapchat/{pattern}.05_01.bN_0.{ext}',
 			pattern = postproc(datasets, ['realigned'], [6], [3],
 				[15, 20, 25, 30, 35, 40]),
-			ext = ['sum', 'inc']),
+			ext = ['diff', 'inc']),
 
-		expand('output/hapcut2/{pattern}.phased.vcf',
+		expand('output/hapcut2/{pattern}.diff',
 			pattern = hairs(simulated, modes, indelmodes)),
 
-		expand('output/{method}/{pattern}.phased.vcf',
+		expand('output/{method}/{pattern}.diff',
 			method = sih_methods + ['probhap'],
 			pattern = hairs(datasets, ['raw'], indelmodes))
 
