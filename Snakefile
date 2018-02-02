@@ -127,24 +127,6 @@ rule master :
 			method = sih_methods + ['probhap'],
 			pattern = hairs(datasets, ['raw'], indelmodes))
 
-# coming up ..
-rule next :
-	input :
-		expand('output/core_wh/{pattern}.sum',
-			pattern = whatshap(
-				datasubset(
-					{21:[5,10]}),
-				['realigned'],
-				[15, 20])),
-
-		expand('output/hapchat/{pattern}.05_00001.{bal}.sum',
-			pattern = sliceof(
-				datasubset(
-                                        {1:[5,10,15,20],21:[5,10,15,20]}),
-				['realigned'], [6], [3],
-				[25]),
-			bal = ['bN_0', 'b20_45'])
-
 #
 # run whatshap on a bam / vcf pair
 #----------------------------------------------------------------------
@@ -476,82 +458,3 @@ rule increments :
 
    printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
    python {input.script} -r {input.log} >> {output} 2> {log} '''
-
-
-# rules that we do not use for the moment ...
-#----------------------------------------------------------------------
-
-#
-# rule that asks for a summary of the results that we can have for a run
-#----------------------------------------------------------------------
-rule gather_summary :
-	input :
-		diff = 'output/' + output_pattern + '.diff',
-		mec = 'output/' + output_pattern + '.mec',
-		sites = 'output/' + output_pattern + '.sites'
-
-	output : 'output/' + output_pattern + '.sum'
-
-	message : '''
-
-   gather summary from:
-
-   {input.diff}
-
-   and:
-
-   {input.mec} '''
-
-	shell : '''
-
-   grep -m 1 "switch error rate:" {input.diff} > {output} || true
-   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output} || true
-   cat {input.mec} | \
-      awk '{{ print "                            "$1" "$2"  "$3 }}' \
-         >> {output} '''
-
-#
-# compute MEC score of phased vcf wrt instance, as a wif file
-#----------------------------------------------------------------------
-rule mec_score :
-	input :
-		script = 'scripts/wiftools.py',
-		vcf = 'output/' + output_pattern + '.phased.vcf',
-		wif = 'wif/' + post_pattern + '.wif'
-
-	output : 'output/' + output_pattern + '.mec'
-
-	log : 'output/' + output_pattern + '.mec.log'
-
-	message : '''
-
-   infer mec score of:
-
-   {input.vcf}
-
-   with respect to: {input.wif} '''
-
-	shell : '''
-
-   python {input.script} -v {input.vcf} {input.wif} \
-      > {output} 2> {log} '''
-
-#
-# get sitewise details of input/run, e.g., coverage, switch error, etc.
-#----------------------------------------------------------------------
-rule sitewise_details :
-	input :
-		script = 'scripts/sitesinfo.py',
-		sites = 'wif/' + post_pattern + '.wif.info_/sites_',
-		swerrs = 'output/' + output_pattern + '.bed'
-
-	output : 'output/' + output_pattern + '.sites'
-
-	log : 'output/' + output_pattern + '.sites.log'
-
-	message : 'obtain sitewise details {output}'
-
-	shell : '''
-
-   python {input.script} -s {input.swerrs} {input.sites} \
-      > {output} 2> {log} '''
