@@ -390,35 +390,6 @@ rule run_sih_method :
    touch {output} '''
 
 #
-# rule that asks for all the different results that we want for a run
-#----------------------------------------------------------------------
-rule gather_summary :
-	input :
-		diff = 'output/' + output_pattern + '.diff',
-		mec = 'output/' + output_pattern + '.mec',
-		sites = 'output/' + output_pattern + '.sites'
-
-	output : 'output/' + output_pattern + '.sum'
-
-	message : '''
-
-   gather summary from:
-
-   {input.diff}
-
-   and:
-
-   {input.mec} '''
-
-	shell : '''
-
-   grep -m 1 "switch error rate:" {input.diff} > {output} || true
-   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output} || true
-   cat {input.mec} | \
-      awk '{{ print "                            "$1" "$2"  "$3 }}' \
-         >> {output} '''
-
-#
 # compare phased vcfs to true phasing
 #----------------------------------------------------------------------
 rule compare_vcfs :
@@ -488,6 +459,58 @@ rule hapcut_to_vcf :
    {hapcut2vcf} {input.vcf} {input.out} > {output} 2> {log} '''
 
 #
+# get details on increasing k from a hapchat log file
+#----------------------------------------------------------------------
+rule increments :
+	input :
+		script = 'scripts/increments.py',
+		log = 'output/hapchat/' + full_pattern + '.log'
+
+	output : 'output/hapchat/' + full_pattern + '.inc'
+
+	log : 'output/hapchat/' + full_pattern + '.inc.log'
+
+	message : 'obtain details on increasing k from {input.log}'
+
+	shell : '''
+
+   printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
+   python {input.script} -r {input.log} >> {output} 2> {log} '''
+
+
+# rules that we do not use for the moment ...
+#----------------------------------------------------------------------
+
+#
+# rule that asks for a summary of the results that we can have for a run
+#----------------------------------------------------------------------
+rule gather_summary :
+	input :
+		diff = 'output/' + output_pattern + '.diff',
+		mec = 'output/' + output_pattern + '.mec',
+		sites = 'output/' + output_pattern + '.sites'
+
+	output : 'output/' + output_pattern + '.sum'
+
+	message : '''
+
+   gather summary from:
+
+   {input.diff}
+
+   and:
+
+   {input.mec} '''
+
+	shell : '''
+
+   grep -m 1 "switch error rate:" {input.diff} > {output} || true
+   grep -m 1 "Block-wise Hamming distance " {input.diff} >> {output} || true
+   cat {input.mec} | \
+      awk '{{ print "                            "$1" "$2"  "$3 }}' \
+         >> {output} '''
+
+#
 # compute MEC score of phased vcf wrt instance, as a wif file
 #----------------------------------------------------------------------
 rule mec_score :
@@ -532,22 +555,3 @@ rule sitewise_details :
 
    python {input.script} -s {input.swerrs} {input.sites} \
       > {output} 2> {log} '''
-
-#
-# get details on increasing k from a hapchat log file
-#----------------------------------------------------------------------
-rule increments :
-	input :
-		script = 'scripts/increments.py',
-		log = 'output/hapchat/' + full_pattern + '.log'
-
-	output : 'output/hapchat/' + full_pattern + '.inc'
-
-	log : 'output/hapchat/' + full_pattern + '.inc.log'
-
-	message : 'obtain details on increasing k from {input.log}'
-
-	shell : '''
-
-   printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
-   python {input.script} -r {input.log} >> {output} 2> {log} '''
