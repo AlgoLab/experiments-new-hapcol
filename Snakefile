@@ -458,3 +458,374 @@ rule increments :
 
    printf "%s Cov. %s: " {wildcards.dataset} {wildcards.coverage} > {output}
    python {input.script} -r {input.log} >> {output} 2> {log} '''
+
+#
+# for generating all of the data needed for the experiments
+#----------------------------------------------------------------------
+#
+data_dir = '/data/phasing-comparison-experiments-hapcol'
+hap_dir = '/home/prj_rnabwt/haplotyping'
+
+# scripts and programs
+time = '/usr/bin/time'
+phase = 'programs/whatshap/venv/bin/whatshap phase'
+extract_hairs = 'programs/hapcut/extractHAIRS'
+extract_hairs2 = 'programs/HapCUT2/build/extractHAIRS'
+scripts = ['wiftools.py', 'subvcf.py']
+scripts_regex = '|'.join([s for s in scripts])
+
+# datasets
+data = ['ashk', 'sim']
+platforms = ['pacbio']
+individuals = ['child'] # mother, father, ..
+chromosomes = [1] # 21, ..
+coverages = list(range(25, 65, 5)) # 25, 30, .., 60
+max_covs = list(range(15, 40, 5))
+chr_covs = { 1 : coverages }
+
+# whatshap processing
+modes = ['raw', 'realigned'] # realignment
+hs = max_covs  # whatshap read selection
+
+# hapcut modes
+indelmodes = ['indels', 'noindels']
+
+# merging
+merge_pattern = 'merged_e{err,[0-9]+}_m{max,[0-9]+}_t{thresh,[0-9]+}_n{neg,[0-9]+}'
+merge_regex = 'no_merging|merged_e[0-9]+_m[0-9]+_t[0-9]+_n[0-9]+'
+error_rates = [15]
+max_errs = [25]
+thresholds = [6] # 17, ..
+neg_threshs = [3]
+mergings = ['merged_e{}_m{}_t{}_n{}'.format(err, max, thresh, neg)
+	for err in error_rates
+	for max in max_errs
+	for thresh in thresholds
+	for neg in neg_threshs] + ['no_merging']
+
+# downsampling to a max coverage (in a random greedy way)
+downs_pattern = 'downs_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
+downs_regex = 'no_downs|downs_s[0-9]+_m[0-9]+'
+sample_pattern = 'sample_s{seed,[0-9]+}_m{maxcov,[0-9]+}'
+seeds = [1] # 2, 3, .. for (pseudo-) random downsampling
+downsamplings = ['downs_s{}_m{}'.format(seed, max)
+	for seed in seeds
+	for max in max_covs] + ['no_downs']
+
+# common patterns
+vcf_pattern = '{dataset,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}'
+dataset_pattern = '{dataset,[a-z]+}.{platform,[a-z]+}.{individual,(mother|father|child)}.chr{chromosome,[0-9]+}.cov{coverage,(all|[0-9]+)}'
+hairs_pattern = dataset_pattern + '.{realignment,(raw|realigned)}{indelmode,(.indels|.noindels)}'
+whatshap_pattern = dataset_pattern + '.{realignment,(raw|realigned)}.h{h,([0-9]+|N)}'
+post_pattern = whatshap_pattern + '.{mergebefore,(' + merge_regex + ')}.{downsample,(' + downs_regex + ')}.{mergeafter,(' + merge_regex + ')}'
+
+# common lists
+datasets = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+	for data in data
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]]
+
+simulated = ['{}.pacbio.child.chr{}.cov{}'.format(data, chromosome, coverage)
+	for data in ['sim']
+	for chromosome in chromosomes
+	for coverage in chr_covs[chromosome]]
+
+whatshap_downsample = ['{}.{}.h{}.no_merging.no_downs.no_merging'.format(dataset, mode, h)
+	for dataset in datasets
+	for mode in modes
+	for h in hs]
+
+post_whatshap = ['{}.{}.hN.{}.{}.no_merging'.format(dataset, mode, merging, downsampling)
+	for dataset in datasets
+	for mode in modes
+	for merging in mergings
+	for downsampling in downsamplings]
+
+#
+# master rule
+#----------------------------------------------------------------------
+rule setup :
+	input :
+		expand('wif/{pattern}.wif.info_/block_sites_',
+			pattern = whatshap_downsample + post_whatshap),
+
+		expand('hairs/{pattern}.raw.{indelmode}.hairs',
+			pattern = datasets,
+			indelmode = indelmodes),
+
+		expand('hairs2/{pattern}.{mode}.{indelmode}.hairs',
+			pattern = datasets,
+			mode = modes,
+			indelmode = indelmodes),
+
+		expand('vcf/{data}.child.chr{chr}.phased.vcf',
+			data = data,
+			chr = chromosomes)
+
+#
+# link to a script in the haplotyping/scripts directory, etc.
+#----------------------------------------------------------------------
+rule link_script :
+        input : hap_dir + '/scripts/{script}'
+	output : 'scripts/{script,(' + scripts_regex + ')}'
+	message : 'linking script {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+#
+# link to files from phasing comparison experiments directory
+#----------------------------------------------------------------------
+rule link_vcf :
+	input : data_dir + '/vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
+	output : 'vcf/' + vcf_pattern + '.{phase,(phased|unphased)}.vcf'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+rule link_bam_bai :
+	input : data_dir + '/bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	output : 'bam/' + dataset_pattern + '.{ext,(bam|bai)}'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+rule link_reference :
+	input : data_dir + '/reference/human_g1k_v37.fasta'
+	output : 'reference/human_g1k_v37.fasta'
+	message : 'linking {input} to {output}'
+	shell : 'ln -fsrv {input} {output}'
+
+#
+# obtain a wif file from a bam / vcf pair using whatshap
+#----------------------------------------------------------------------
+rule get_wif :
+	input :
+		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
+
+	params :
+                realignment = lambda wildcards, input :
+			'--reference '+input.ref if wildcards.realignment == 'realigned' else '',
+		h = lambda wildcards :
+			'1000' if wildcards.h == 'N' else wildcards.h
+
+	output : 'wif/' + whatshap_pattern + '.wif'
+
+	log :
+		transcript = 'wif/' + whatshap_pattern + '.wif.transcript',
+		log = 'wif/' + whatshap_pattern + '.wif.log',
+		time = 'wif/' + whatshap_pattern + '.wif.time'
+
+	message : '''
+
+   obtaining wif file: {output}
+
+   from: {input.bam} / {input.vcf} pair,
+
+   after selecting reads down to max coverage {params.h} '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {phase} -o /dev/null {params.realignment} \
+         --output-wif {output} -H {params.h} \
+         {input.vcf} {input.bam} > {log.transcript} 2> {log.log} '''
+
+#
+# obtain a hairs file from a bam / vcf pair using hapcut extract hairs
+#----------------------------------------------------------------------
+rule get_hairs :
+	input :
+		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
+
+	params : lambda wildcards :
+		'--indels 1' if wildcards.indelmode == '.indels' else ''
+
+	output : 'hairs/' + hairs_pattern + '.hairs'
+
+	log :
+		log = 'hairs/' + hairs_pattern + '.log',
+		time = 'hairs/' + hairs_pattern + '.time'
+
+	message : '''
+
+   obtaining hairs file: {output}
+
+   from: {input.bam} / {input.vcf} pair '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {extract_hairs} --ref {input.ref} {params} \
+         --VCF {input.vcf} --bam {input.bam} \
+            > {output} 2> {log.log} '''
+
+# obtain hairs using hapcut2 extract hairs
+rule get_hairs2 :
+	input :
+		bam = 'bam/' + dataset_pattern + '.bam',
+		bai = 'bam/' + dataset_pattern + '.bai',
+		vcf = 'vcf/' + vcf_pattern + '.unphased.vcf',
+		ref = 'reference/human_g1k_v37.fasta'
+
+	params :
+		realignment = lambda wildcards :
+			'--pacbio 1' if wildcards.realignment == 'realigned' else '',
+		indels = lambda wildcards :
+			'--indels 1' if wildcards.indelmode == '.indels' else ''
+
+	output : 'hairs2/' + hairs_pattern + '.hairs'
+
+	log :
+		log = 'hairs2/' + hairs_pattern + '.log',
+		time = 'hairs2/' + hairs_pattern + '.time'
+
+	message : '''
+
+   obtaining hairs file: {output} with HapCUT2 extractHAIRS
+
+   from: {input.bam} / {input.vcf} pair '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      {extract_hairs2} --ref {input.ref} {params} \
+         --VCF {input.vcf} --bam {input.bam} --out {output} \
+            > {log.log} 2>&1 '''
+
+#
+# downsample a wif file to a specified max coverage
+#----------------------------------------------------------------------
+rule extract_sample :
+	input :
+		source = '{path}.wif',
+		sample = '{path}.wif.' + sample_pattern
+
+	output : '{path}.' + downs_pattern + '.wif'
+	message : 'extract lines {input.sample} from {input.source}'
+
+	shell : '''
+
+   awk '{{printf "%.20d %s\\n", NR, $0}}' {input.source} | join - \
+      <(awk '{{printf "%.20d\\n", $1}}' {input.sample} | sort) | \
+         sed 's/^[0-9]* //' > {output} '''
+
+# dummy rule to ensure the naming is consistent
+rule no_downsampling :
+	input : '{path}.wif'
+	output : '{path}.no_downs.wif'
+	message : 'perform no downsampling'
+	shell : 'cp {input} {output}'
+
+# greedily downsample wif to a coverage according to a shuffle
+rule downsample :
+	input :
+		script = 'scripts/wiftools.py',
+		wif = '{path}.wif',
+		shuf = '{path}.wif.lines.shuf{seed}'
+
+	output : '{path}.wif.' + sample_pattern
+
+	log :
+		log = '{path}.wif.' + sample_pattern + '.log',
+		time = '{path}.wif.' + sample_pattern + '.time'
+
+	message : '''
+
+   psuedorandom downsampling of: {input.wif}
+
+   to maximum coverage {wildcards.maxcov}, according to:
+
+   {input.shuf}, producing the sample:
+
+   {output} '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      python {input.script} -s {wildcards.maxcov} {input.shuf} {input.wif} \
+         > {output} 2> {log.log} '''
+
+# seeded pseudorandom shuffle of lines of a file (cf. gnu.org)
+rule permute_lines :
+	input : '{path}.lines'
+	output : '{path}.lines.shuf{seed,[0-9]+}'
+	message : 'pseudorandom shuffle of {input} with seed {wildcards.seed}'
+	shell : '''
+
+   shuf {input} --random-source=<(openssl enc -aes-256-ctr \
+      -pass pass:"{wildcards.seed}" -nosalt </dev/zero 2>/dev/null) > {output} '''
+
+# get lines (numbers) from a file
+rule get_lines :
+	input : '{path}'
+	output : '{path}.lines'
+	message : 'obtain lines (numbers) from {input}'
+	shell : ''' awk '{{print NR}}' {input} > {output} '''
+
+#
+# obtain a (red-blue-) merged wif from a wif
+#----------------------------------------------------------------------
+rule merge_wif :
+	input :
+		script = 'scripts/rb-merge.py',
+		wif = '{path}.wif'
+
+	params :
+		e = lambda wildcards : '0.' + wildcards.err,
+		m = lambda wildcards : '0.' + wildcards.max,
+		t = lambda wildcards : 10 ** int(wildcards.thresh),
+		n = lambda wildcards : 10 ** int(wildcards.neg)
+
+	output : '{path}.' + merge_pattern + '.wif'
+
+	log :
+		log = '{path}.' + merge_pattern + '.wif.log',
+		time = '{path}.' + merge_pattern + '.wif.time',
+		graph = '{path}.' + merge_pattern + '.wif.graph'
+
+	message : '''
+
+   merge reads of {input.wif},
+   with parameters:
+
+   error rate = {params.e},
+   max error rate = {params.m},
+   threshold = {params.t},
+   neg. threshold = {params.n}
+
+   producing: {output} '''
+
+	shell : '''
+
+   {time} -v -o {log.time} \
+      python {input.script} -v -e {params.e} -m {params.m} \
+         -t {params.t} -n {params.n} -w {input.wif} -o {output} \
+         -g {log.graph} > {log.log} 2>&1 '''
+
+# dummy rule to ensure the naming is consistent
+rule no_merging :
+	input : '{path}.wif'
+	output : '{path}.no_merging.wif'
+	message : 'perform no merging'
+	shell : 'cp {input} {output}'
+
+#
+# obtain properties of a wif file
+#----------------------------------------------------------------------
+rule wif_info :
+	input :
+		script = 'scripts/wiftools.py',
+		wif = '{path}.wif'
+
+	output :
+		expand('{{path}}.wif.info_/{file}',
+			file = ['block_reads_', 'block_sites_',
+				'site_alleles_', 'site_zygosity_',
+				'blocks_', 'reads_',
+				'sites_', 'stats_'])
+
+	message : 'obtaining info for {input.wif}'
+	shell : 'python {input.script} -i {input.wif}'
